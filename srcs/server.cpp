@@ -28,19 +28,22 @@ Server::Server(int port)
 
 Server::Server(const Server &src)
 {
-    _socket = src._socket;
-
-    for (size_t i = 0; i < src._clients.size(); i++)
-        _clients[i] = src._clients[i];    
+    if (this != &src)
+    {
+        _socket = src._socket;
+        _addr = src._addr;
+        _clients = src._clients;
+    }  
 }
 
 Server  &Server::operator=(const Server &src)
 {
-    _socket = src._socket;
-
-    for (size_t i = 0; i < src._clients.size(); i++)
-        _clients[i] = src._clients[i];
-
+    if (this != &src)
+    {
+        _socket = src._socket;
+        _addr = src._addr;
+        _clients = src._clients;
+    }
     return *this;
 }
 
