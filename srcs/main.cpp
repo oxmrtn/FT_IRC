@@ -1,9 +1,42 @@
 #include "../includes/server.hpp"
 #include "../includes/client.hpp"
 
-int main(int argc, char **argv)
+int err_ret(const char *msg)
 {
-    (void)argc; (void)argv;
+    std::cerr << "error: " << msg << std::endl;
+    return (1);
+}
+
+int args_check(int ac, char **av)
+{
+    if (ac != 3)
+        return (err_ret("invalid arguments: expecting: <port> <password>"));
+    
+    long    port = std::atol(av[1]);
+
+    if (!port || port < 1 || port > 65535)
+        return (err_ret("invalid arguments: <port> is expecting an integer in range 1-65535"));
+    
+    return (0);
+}
+
+int main(int ac, char **av)
+{
+    if (args_check(ac, av))
+        return (1);
+    
     std::cout << "IRC SERVER LAUNCHED" << std::endl;
+
+    int port = std::atoi(av[0]);
+
+    try
+    {
+        Server server = Server(port);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << "error: " << e.what() << '\n';
+    }
+
     return (0);
 }

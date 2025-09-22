@@ -5,11 +5,21 @@
 class Server
 {
     private:
-        std::vector<int> client_fd;
+        int                 _socket;
+        sockaddr_in         _addr;
+        std::vector<int>    _clients;
+        void                _init(int port);
+
     public:
-        Server();
-        Server(const Server & Server);
-        Server & operator=(const Server & other);
+        Server(void);
+        Server(int port);
+        Server(const Server &src);
+        Server &operator=(const Server &src);
         ~Server();
+
+    class   SocketInitError : public std::exception
+        {   public: virtual const char *what() const throw(); };
+    class   SocketBindError : public std::exception
+        {   public: virtual const char *what() const throw(); };
 };
 
