@@ -1,3 +1,0 @@
-obj/main.o: srcs/main.cpp srcs/../includes/server.hpp \
-  includes/./includes.hpp includes/consts.hpp \
-  srcs/../includes/client.hpp
