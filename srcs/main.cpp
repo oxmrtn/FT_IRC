@@ -14,9 +14,8 @@ int args_check(int ac, char **av)
     
     long    port = std::atol(av[1]);
 
-    if (!port || port < 1 || port > 65535)
-        return (err_ret("invalid arguments: <port> is expecting an integer in range 1-65535"));
-    
+    if (!port || port < 1023 || port > 65535)
+        return (err_ret("invalid arguments: <port> is expecting an integer in range 1023-65535"));
     return (0);
 }
 
