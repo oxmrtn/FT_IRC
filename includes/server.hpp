@@ -8,11 +8,12 @@ class Server
         pollfd      _fds[MAX_CONS];
         sockaddr_in _addrs[MAX_CONS];
         size_t      _fds_size;
-        void    _init(int port);
+        std::string _pass;
+        void    _init(int port, std::string pass);
 
     public:
         Server(void);
-        Server(int port);
+        Server(int port, std::string pass);
         Server(const Server &src);
         Server &operator=(const Server &src);
         ~Server();

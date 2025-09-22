@@ -4,12 +4,14 @@
 // ==================== METHODS ====================
 
 
-void Server::_init(int port)
+void Server::_init(int port, std::string pass)
 {
     _fds[0].fd = socket(AF_INET, SOCK_STREAM, 0);
     if (_fds[0].fd < 0)
         throw SocketInitError();
     _fds[0].events = POLLIN;
+
+    _pass = pass;
 
     _fds_size = 1;
 
@@ -28,6 +30,7 @@ void Server::_init(int port)
     socklen_t   len = sizeof(tmp_addr);
     getsockname(_fds[0].fd, reinterpret_cast<sockaddr*>(&tmp_addr), &len);
     int running_port = ntohs(tmp_addr.sin_port);
+
     std::cout << "IRC server running on port: " << running_port << std::endl;
 }
 
@@ -76,12 +79,12 @@ void    Server::_accept(void)
 
 Server::Server(void)
 {
-    _init(6667);
+    _init(6667, "123");
 }
 
-Server::Server(int port)
+Server::Server(int port, std::string pass) 
 {
-    _init(port);
+    _init(port, pass);
 }
 
 Server::Server(const Server &src)

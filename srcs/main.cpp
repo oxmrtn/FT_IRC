@@ -41,7 +41,7 @@ int main(int ac, char **av)
 
     try
     {
-        Server  server = Server(port);
+        Server  server = Server(port, av[2]);
         server._run();
     }
     catch(const std::exception& e)
