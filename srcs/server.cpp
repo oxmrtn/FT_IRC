@@ -1,5 +1,9 @@
 #include "../includes/server.hpp"
 
+
+// ==================== METHODS ====================
+
+
 void Server::_init(int port)
 {
     _socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -14,7 +18,14 @@ void Server::_init(int port)
 
     if (bind(_socket, reinterpret_cast<struct sockaddr*>(&_addr), sizeof(_addr)) < 0)
         throw SocketBindError();
+        
+    if (listen(_socket, 5) < 0)
+        throw SocketListenError();
 }
+
+
+// ==================== CONSTRUCTORS ====================
+
 
 Server::Server(void)
 {
@@ -36,6 +47,16 @@ Server::Server(const Server &src)
     }  
 }
 
+Server::~Server()
+{
+    close(_socket);
+}
+
+
+// ==================== OPERATORS ====================
+
+
+
 Server  &Server::operator=(const Server &src)
 {
     if (this != &src)
@@ -47,10 +68,9 @@ Server  &Server::operator=(const Server &src)
     return *this;
 }
 
-Server::~Server()
-{
-    close(_socket);
-}
+
+// ==================== EXCEPTIONS ====================
+
 
 const char *Server::SocketInitError::what() const throw()
 {
@@ -60,4 +80,9 @@ const char *Server::SocketInitError::what() const throw()
 const char *Server::SocketBindError::what() const throw()
 {
     return "failed to bind port";
+}
+
+const char *Server::SocketListenError::what() const throw()
+{
+    return "failed to enable socket listening";
 }
