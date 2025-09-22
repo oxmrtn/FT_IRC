@@ -62,11 +62,11 @@ void    Server::_accept(void)
         char    *ip = inet_ntoa(_addrs[_fds_size].sin_addr);
         int     port = ntohs(_addrs[_fds_size].sin_port);
         
-        std::cout << "New client connection: " << ip << ":" << port << std::endl;
-        
         _fds[_fds_size].fd = fd;
         _fds[_fds_size].events = POLLIN;
         _fds_size++;
+
+        std::cout << "New client connection: " << ip << ":" << port << std::endl;
     }
 }
 
@@ -88,7 +88,10 @@ Server::Server(const Server &src)
 {
     if (this != &src)
         for (size_t i = 0; i < MAX_CONS; i++)
+        {
             _fds[i] = src._fds[i];
+            _addrs[i] = src._addrs[i];
+        }
 }
 
 Server::~Server()
@@ -111,6 +114,7 @@ Server  &Server::operator=(const Server &src)
             if (_fds[i].fd > 0)
                 close(_fds[i].fd);
             _fds[i] = src._fds[i];
+            _addrs[i] = src._addrs[i];
         }
     }
     return *this;
