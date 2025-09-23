@@ -6,30 +6,28 @@
 
 void Server::_init(int port, std::string pass)
 {
-    _fds[0].fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_fds[0].fd < 0)
+    _pfds[0].fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (_pfds[0].fd < 0)
         throw SocketInitError();
-    _fds[0].events = POLLIN;
+    _pfds[0].events = POLLIN;
 
     _pass = pass;
 
-    _ncli = 1;
+    sockaddr_in tmp_addr;
+    tmp_addr.sin_family = AF_INET;
+    tmp_addr.sin_port = htons(port);
+    tmp_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    memset(tmp_addr.sin_zero, 0, sizeof(tmp_addr.sin_zero));
 
-    _addrs[0].sin_family = AF_INET;
-    _addrs[0].sin_port = htons(port);
-    _addrs[0].sin_addr.s_addr = htonl(INADDR_ANY);
-    memset(_addrs[0].sin_zero, 0, sizeof(_addrs[0].sin_zero));
-
-    if (bind(_fds[0].fd, reinterpret_cast<struct sockaddr*>(&_addrs[0]), sizeof(_addrs[0])) < 0)
+    if (bind(_pfds[0].fd, reinterpret_cast<struct sockaddr*>(&tmp_addr), sizeof(tmp_addr)) < 0)
         throw SocketBindError();
         
-    if (listen(_fds[0].fd, CONS_QUEUE) < 0)
+    if (listen(_pfds[0].fd, CONS_QUEUE) < 0)
         throw SocketListenError();
 
-    sockaddr_in tmp_addr;
-    socklen_t   len = sizeof(tmp_addr);
-    getsockname(_fds[0].fd, reinterpret_cast<sockaddr*>(&tmp_addr), &len);
-    int running_port = ntohs(tmp_addr.sin_port);
+    socklen_t   len = sizeof(_addr);
+    getsockname(_pfds[0].fd, reinterpret_cast<sockaddr*>(&_addr), &len);
+    int running_port = ntohs(_addr.sin_port);
 
     std::cout << "IRC server running on port: " << running_port << std::endl;
 }
@@ -38,15 +36,15 @@ void    Server::_run(void)
 {
     while (true)
     {
-        int polled = poll(_fds, _ncli, 0);
+        int polled = poll(_pfds, _users.size() + 1, 0);
         if (polled < 0)
-            std::cerr << "server: failed to poll";
+            err_ret(strerror(errno));
         else if (polled > 0)
         {
-            if (_fds[0].revents & POLLIN)
+            if (_pfds[0].revents & POLLIN)
                 _handle_connection();
-            for (size_t i = 1; i < _ncli; i++)
-                if (_fds[0].revents & POLLIN)
+            for (size_t i = 1; i < _users.size() + 1; i++)
+                if (_pfds[i].revents & POLLIN)
                     _handle_message(i);
         }
     }
@@ -54,26 +52,53 @@ void    Server::_run(void)
 
 void    Server::_handle_connection(void)
 {
-    socklen_t   len = sizeof(_addrs[_ncli]);
-    int fd = accept(_fds[0].fd, reinterpret_cast<struct sockaddr*>(&_addrs[_ncli]), &len);
+    User        user;
+    sockaddr_in addr = user._get_addr();
+    socklen_t   len = sizeof(addr);
+
+    int fd = accept(_pfds[0].fd, reinterpret_cast<struct sockaddr*>(&addr), &len);
     if (fd < 0)
-        std::cerr << "server: failed to connect new client";
+        err_ret(strerror(errno));
     else
     {
-        char    *ip = inet_ntoa(_addrs[_ncli].sin_addr);
-        int     port = ntohs(_addrs[_ncli].sin_port);
+        char    *ip = inet_ntoa(addr.sin_addr);
+        int     port = ntohs(addr.sin_port);
+        int     i = _users.size() + 1;
         
-        _fds[_ncli].fd = fd;
-        _fds[_ncli].events = POLLIN;
-        _ncli++;
+        _pfds[i].fd = fd;
+        _pfds[i].events = POLLIN;
+        user._set_pfd(&_pfds[i]);
+        _users.push_back(user);    
 
-        std::cout << "New client connection: " << ip << ":" << port << std::endl;
+        std::cout << "New user connection: " << ip << ":" << port << std::endl;
     }
 }
 
 void    Server::_handle_message(size_t icli)
 {
+    User    user = _get_user_from_i(icli);
+    char    *buf = user._get_msg_buf();
+
+    ssize_t r_bytes = recv(_pfds[icli].fd, buf, MSG_BUF_SIZ - 1, 0);
     
+    if (r_bytes > 0) {
+        buf[r_bytes] = '\0';
+        std::cout << "msg: " << buf << std::endl;
+    }
+    else if (r_bytes == 0) {
+        // disconnect
+    }
+    else {
+        err_ret(strerror(errno));
+    }
+}
+
+User &Server::_get_user_from_i(size_t icli)
+{
+    for (size_t i = 1; i < _users.size(); ++i)
+        if (_users[i]._get_pfd() == &_pfds[icli])
+            return _users[i];
+    throw UserNotFoundError();
 }
 
 
@@ -93,35 +118,25 @@ Server::Server(int port, std::string pass)
 Server::Server(const Server &src)
 {
     if (this != &src)
-        for (size_t i = 0; i < MAX_CONS; i++)
-        {
-            _fds[i] = src._fds[i];
-            _addrs[i] = src._addrs[i];
-        }
+    {
+        //
+    }
 }
 
 Server::~Server()
 {
-    for (size_t i = 0; i < _ncli; i++)
-        close(_fds[i].fd);
+    //
 }
 
 
 // ==================== OPERATORS ====================
 
 
-
 Server  &Server::operator=(const Server &src)
 {
     if (this != &src)
     {
-        for (size_t i = 0; i < MAX_CONS; i++)
-        {
-            if (_fds[i].fd > 0)
-                close(_fds[i].fd);
-            _fds[i] = src._fds[i];
-            _addrs[i] = src._addrs[i];
-        }
+        //
     }
     return *this;
 }
@@ -132,15 +147,20 @@ Server  &Server::operator=(const Server &src)
 
 const char *Server::SocketInitError::what() const throw()
 {
-    return "server: failed to init socket";
+    return "failed to init socket";
 }
 
 const char *Server::SocketBindError::what() const throw()
 {
-    return "server: failed to bind port";
+    return "failed to bind port";
 }
 
 const char *Server::SocketListenError::what() const throw()
 {
-    return "server: failed to enable listening";
+    return "failed to enable listening";
+}
+
+const char *Server::UserNotFoundError::what() const throw()
+{
+    return "user not found for given pollfd index";
 }

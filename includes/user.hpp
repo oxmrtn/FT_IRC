@@ -2,12 +2,12 @@
 
 #include "./includes.hpp"
 
-enum    Authentication   {
+enum    Authentication  {
     NOT_AUTH,
     IS_AUTH
 };
 
-class Client
+class User
 {
     private:
         pollfd          *_pfd;
@@ -18,8 +18,12 @@ class Client
         Authentication  _auth;
 
     public:
-        Client();
-        Client(const Client &src);
-        Client &operator=(const Client &src);
-        ~Client();
+        User();
+        User(const User &src);
+        User &operator=(const User &src);
+        ~User();
+        sockaddr_in &_get_addr(void);
+        pollfd      *_get_pfd(void);
+        char        *_get_msg_buf(void);
+        void        _set_pfd(pollfd *pfd);
 };

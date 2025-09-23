@@ -1,15 +1,16 @@
 #pragma once
 
 #include "./includes.hpp"
+#include "./user.hpp"
 
 class Server
 {
     private:
-        pollfd      _fds[MAX_CONS];
-        sockaddr_in _addrs[MAX_CONS];
-        size_t      _ncli;
-        std::string _pass;
-        void    _init(int port, std::string pass);
+        pollfd              _pfds[MAX_CONS + 1];
+        sockaddr_in         _addr;
+        std::string         _pass;
+        std::vector<User>   _users;
+        void                _init(int port, std::string pass);
 
     public:
         Server(void);
@@ -20,6 +21,7 @@ class Server
         void    _run(void);
         void    _handle_connection(void);
         void    _handle_message(size_t icli);
+        User    &_get_user_from_i(size_t icli);
 
     class   SocketInitError     : public std::exception
         {   public: virtual const char *what() const throw(); };
@@ -27,5 +29,6 @@ class Server
         {   public: virtual const char *what() const throw(); };
     class   SocketListenError   : public std::exception
         {   public: virtual const char *what() const throw(); };
+    class   UserNotFoundError   : public std::exception
+        {   public: virtual const char *what() const throw(); };
 };
-

@@ -1,9 +1,34 @@
-#include "../includes/client.hpp"
+#include "../includes/user.hpp"
+
+
+// ==================== METHODS ====================
+
+
+sockaddr_in &User::_get_addr(void)
+{
+    return _addr;
+}
+
+void    User::_set_pfd(pollfd *pfd)
+{
+    _pfd = pfd;
+}
+
+pollfd  *User::_get_pfd(void)
+{
+    return _pfd;
+}
+
+char    *User::_get_msg_buf(void)
+{
+    return _msg_buf;
+}
+
 
 // ==================== CONSTRUCTORS ====================
 
 
-Client::Client(void)
+User::User(void)
 {
     _pfd = NULL;
     memset(_msg_buf, 0, MSG_BUF_SIZ);
@@ -12,7 +37,7 @@ Client::Client(void)
     _auth = NOT_AUTH;
 }
 
-Client::Client(const Client &src)
+User::User(const User &src)
 {
     if (this != &src)
     {
@@ -25,15 +50,14 @@ Client::Client(const Client &src)
     }
 }
 
-Client::~Client()
+User::~User()
 {}
 
 
 // ==================== OPERATORS ====================
 
 
-
-Client  &Client::operator=(const Client &src)
+User  &User::operator=(const User &src)
 {
     if (this != &src)
     {

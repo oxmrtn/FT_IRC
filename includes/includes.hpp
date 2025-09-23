@@ -16,3 +16,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <consts.hpp>
+#include <cerrno>
+
+int err_ret(const std::string msg);

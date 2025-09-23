@@ -1,5 +1,5 @@
 #include "../includes/server.hpp"
-#include "../includes/client.hpp"
+#include "../includes/user.hpp"
 
 int err_ret(const std::string msg)
 {
@@ -46,7 +46,7 @@ int main(int ac, char **av)
     }
     catch(const std::exception& e)
     {
-        std::cerr << "error: " << e.what() << '\n';
+        err_ret(e.what());
     }
 
     return (0);
