@@ -1,4 +1,4 @@
-#include "../includes/User.hpp"
+#include "../includes/user.hpp"
 
 // ==================== CONSTRUCTORS ====================
 
@@ -45,4 +45,22 @@ User  &User::operator=(const User &src)
         _auth = src._auth;
     }
     return *this;
+}
+
+bool User::operator==(const User &other) const
+{
+    return (this->_username == other._username);
+}
+
+
+// ==================== GETTER ====================
+
+const std::string& User::getUsername() const 
+{
+    return (_username);
+}
+
+const std::string& User::getNickname() const
+{
+    return (_nickname);
 }

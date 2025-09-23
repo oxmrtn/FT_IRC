@@ -5,4 +5,5 @@
 class User;
 class Channel;
 
-bool UserInVector(const User& user, const std::vector<User>& users);
+bool        UserInVector(const User& user, const std::vector<User>& users);
+std::string getTimestamp();

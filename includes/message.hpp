@@ -1,9 +1,8 @@
 #pragma once
 
 #include "./includes.hpp"
-
-class User;
-
+#include "./user.hpp"
+#include "./tools.hpp"
 
 class Message
 {
@@ -14,7 +13,7 @@ class Message
         Message();
 
     public:
-        Message(User sender, std::string message);
+        Message(User & sender, std::string message);
         Message(Message & other);
         Message & operator=(Message & other);
         ~Message();

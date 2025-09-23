@@ -2,21 +2,24 @@
 
 #include "./includes.hpp"
 #include "./tools.hpp"
+#include "./message.hpp"
+#include "./consts.hpp"
+#include "./user.hpp"
 
-class User;
 
 class Channel
 {
     private:
-        std::string         _name;
-        std::string         _topic;
-        bool                _otopic;
-        std::string         _pwd;
-        bool                _pwdNeeded;
-        std::vector<User>   _uList;
-        std::vector<User>   _oList;
-        bool                _iOnly;
-        std::vector<User>   _invList;
+        std::string             _name;
+        std::string             _topic;
+        bool                    _otopic;
+        std::string             _pwd;
+        bool                    _pwdNeeded;
+        std::vector<User>       _uList;
+        std::vector<User>       _oList;
+        bool                    _iOnly;
+        std::vector<User>       _invList;
+        std::deque<Message>    _messList;
 
     public:
         Channel();
@@ -24,9 +27,11 @@ class Channel
         Channel(const Channel & other);
         Channel & operator=(const Channel & other);
         ~Channel();
-        bool kick(User & user);
-        bool invite(User & user);
-        bool mode(std::string mode, User & user);
+        bool kick(const User & user);
+        bool invite(const User & user);
+        bool mode(char mode, User & user, char sign, std::string parameters);
         bool setTopic(std::string topic, User & user);
-
+        void displayLastMessage();
+        void displayAllMessage();
+        void addMessage(const Message & message);
 };

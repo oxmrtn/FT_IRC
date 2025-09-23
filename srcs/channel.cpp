@@ -54,7 +54,9 @@ Channel & Channel::operator=(const Channel & other)
 }
 
 
-bool Channel::kick(User & user)
+// ==================== METHODS ====================
+
+bool Channel::kick(const User & user)
 {
     for (std::vector<User>::iterator it = this->_uList.begin();
          it != this->_uList.end(); ++it)
@@ -67,7 +69,7 @@ bool Channel::kick(User & user)
     return (false);
 }
 
-bool Channel::invite(User & user)
+bool Channel::invite(const User & user)
 {
     if (!UserInVector(user, this->_uList))
     {
@@ -88,9 +90,91 @@ bool Channel::setTopic(std::string topic, User & user)
     return (false);
 }
 
-bool Channel::mode(std::string mode, User & user)
+bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 {
     //things to do
-    // handle i o k t l mode ! 
+    // handle i o k t l mode !
+    if (!UserInVector(user, this->_oList))
+        return (false);
+    switch (mode)
+    {
+        case 'i':
+        {
+            if (sign == '+')
+            {
+                _iOnly = true;
+            }
+            else
+                _iOnly = false;
+            break;
+        }
+        case 'o':
+        {
+            try
+            {
+                User temp = getUserByUname(parameters);
+                if (sign == '+' && !UserInVector(temp, _oList))
+                        _oList.push_back(temp);
+                if (sign == '-' && UserInVector(temp, _oList))
+                {
+                    // REMOVE USER FROM O_LIST
+                }
+            }catch(std::exception &e)
+            {
+                // USER NOT FOUND
+                return (false);
+            }
+            break;
+        }
+        case 'k':
+        {
+            break;
+        }
+        case 't':
+        {
+            if (sign == '+')
+            {
+                _otopic = true;
+            }
+            else
+            {
+                _otopic = false;
+            }
+            break;
+        }
+        case 'l':
+        {
+            break;
+        }
+    }
     return (true);
+}
+
+
+void Channel::displayAllMessage()
+{
+    for (std::deque<Message>::iterator it = this->_messList.begin();
+         it != this->_messList.end(); ++it)
+    {
+            it->displayMessage();
+    }
+    return ;
+}  
+
+void Channel::displayLastMessage()
+{
+    if (_messList.size() == 0)
+        return ;
+    _messList[this->_messList.size() - 1].displayMessage();
+    return ;
+}
+
+void Channel::addMessage(const Message & message)
+{
+    if (_messList.size() == MAX_MSG_CHANNEL)
+    {
+        _messList.pop_front();
+    }
+    _messList.push_back(message);
+    return ;
 }
