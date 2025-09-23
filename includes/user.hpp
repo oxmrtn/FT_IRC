@@ -1,23 +1,28 @@
 #pragma once
 
 #include "./includes.hpp"
-#include "./channel.hpp"
 
+enum    Authentication   {
+    NOT_AUTH,
+    IS_AUTH
+};
+
+class Channel;
 
 class User
 {
     private:
-        std::string                 _nickName;
-        std::string                 _userName;
-        int                         socket_fd;
-        std::vector<std::string>    _channel; 
+        pollfd                  *_pfd;
+        sockaddr_in             _addr;
+        char                    _msg_buf[MSG_BUF_SIZ];
+        std::string             _username;
+        std::string             _nickname;
+        std::vector<Channel>    _channel;
+        Authentication  _auth;
 
     public:
         User();
-        User(std::string nick, std::string user, int socket);
-        User(const User & other);
-        User & operator=(const User & other);
-        bool operator==(const User & other);
+        User(const User &src);
+        User &operator=(const User &src);
         ~User();
-        int joinChannel(Channel chanel);
 };
