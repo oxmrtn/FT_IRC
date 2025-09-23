@@ -7,7 +7,7 @@ class Server
     private:
         pollfd      _fds[MAX_CONS];
         sockaddr_in _addrs[MAX_CONS];
-        size_t      _fds_size;
+        size_t      _ncli;
         std::string _pass;
         void    _init(int port, std::string pass);
 
@@ -18,7 +18,8 @@ class Server
         Server &operator=(const Server &src);
         ~Server();
         void    _run(void);
-        void    _accept(void);
+        void    _handle_connection(void);
+        void    _handle_message(size_t icli);
 
     class   SocketInitError     : public std::exception
         {   public: virtual const char *what() const throw(); };

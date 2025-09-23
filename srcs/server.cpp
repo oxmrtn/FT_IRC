@@ -13,7 +13,7 @@ void Server::_init(int port, std::string pass)
 
     _pass = pass;
 
-    _fds_size = 1;
+    _ncli = 1;
 
     _addrs[0].sin_family = AF_INET;
     _addrs[0].sin_port = htons(port);
@@ -38,39 +38,42 @@ void    Server::_run(void)
 {
     while (true)
     {
-        int polled = poll(_fds, _fds_size, 0);
+        int polled = poll(_fds, _ncli, 0);
         if (polled < 0)
             std::cerr << "server: failed to poll";
         else if (polled > 0)
         {
-            if (_fds[0].revents & POLLIN) {
-                _accept();
-            }
-            // for (size_t i = 0; i < _fds_size; i++)
-            // {
- 
-            // }
+            if (_fds[0].revents & POLLIN)
+                _handle_connection();
+            for (size_t i = 1; i < _ncli; i++)
+                if (_fds[0].revents & POLLIN)
+                    _handle_message(i);
         }
     }
 }
 
-void    Server::_accept(void)
+void    Server::_handle_connection(void)
 {
-    socklen_t   len = sizeof(_addrs[_fds_size]);
-    int fd = accept(_fds[0].fd, reinterpret_cast<struct sockaddr*>(&_addrs[_fds_size]), &len);
+    socklen_t   len = sizeof(_addrs[_ncli]);
+    int fd = accept(_fds[0].fd, reinterpret_cast<struct sockaddr*>(&_addrs[_ncli]), &len);
     if (fd < 0)
         std::cerr << "server: failed to connect new client";
     else
     {
-        char    *ip = inet_ntoa(_addrs[_fds_size].sin_addr);
-        int     port = ntohs(_addrs[_fds_size].sin_port);
+        char    *ip = inet_ntoa(_addrs[_ncli].sin_addr);
+        int     port = ntohs(_addrs[_ncli].sin_port);
         
-        _fds[_fds_size].fd = fd;
-        _fds[_fds_size].events = POLLIN;
-        _fds_size++;
+        _fds[_ncli].fd = fd;
+        _fds[_ncli].events = POLLIN;
+        _ncli++;
 
         std::cout << "New client connection: " << ip << ":" << port << std::endl;
     }
+}
+
+void    Server::_handle_message(size_t icli)
+{
+    
 }
 
 
@@ -99,7 +102,7 @@ Server::Server(const Server &src)
 
 Server::~Server()
 {
-    for (size_t i = 0; i < _fds_size; i++)
+    for (size_t i = 0; i < _ncli; i++)
         close(_fds[i].fd);
 }
 
