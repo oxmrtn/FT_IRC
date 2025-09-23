@@ -5,23 +5,26 @@
 class Server
 {
     private:
-        int                 _socket;
-        sockaddr_in         _addr;
-        std::vector<int>    _clients;
-        void                _init(int port);
+        pollfd      _fds[MAX_CONS];
+        sockaddr_in _addrs[MAX_CONS];
+        size_t      _fds_size;
+        std::string _pass;
+        void    _init(int port, std::string pass);
 
     public:
         Server(void);
-        Server(int port);
+        Server(int port, std::string pass);
         Server(const Server &src);
         Server &operator=(const Server &src);
         ~Server();
+        void    _run(void);
+        void    _accept(void);
 
-    class   SocketInitError : public std::exception
+    class   SocketInitError     : public std::exception
         {   public: virtual const char *what() const throw(); };
-    class   SocketBindError : public std::exception
+    class   SocketBindError     : public std::exception
         {   public: virtual const char *what() const throw(); };
-    class   SocketListenError : public std::exception
+    class   SocketListenError   : public std::exception
         {   public: virtual const char *what() const throw(); };
 };
 

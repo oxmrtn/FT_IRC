@@ -1,9 +1,18 @@
 #include "../includes/server.hpp"
 #include "../includes/client.hpp"
 
-int err_ret(const char *msg)
+int err_ret(const std::string msg)
 {
     std::cerr << "error: " << msg << std::endl;
+    return (1);
+}
+
+int is_zero(const std::string str)
+{
+    for (size_t i = 0; i < str.length(); i++)
+        if (str[i] != '0')
+            return (0);
+
     return (1);
 }
 
@@ -23,14 +32,13 @@ int main(int ac, char **av)
 {
     if (args_check(ac, av))
         return (1);
-    
-    std::cout << "IRC SERVER LAUNCHED" << std::endl;
 
     int port = std::atoi(av[0]);
 
     try
     {
-        Server server = Server(port);
+        Server  server = Server(port, av[2]);
+        server._run();
     }
     catch(const std::exception& e)
     {
