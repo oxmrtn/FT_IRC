@@ -68,7 +68,7 @@ void    Server::_handle_connection(void)
         _pfds[i].fd = fd;
         _pfds[i].events = POLLIN;
         user._set_pfd(&_pfds[i]);
-        _users.push_back(user);    
+        _users.push_back(user);
 
         std::cout << "New user connection: " << ip << ":" << port << std::endl;
     }
@@ -95,7 +95,7 @@ void    Server::_handle_message(size_t icli)
 
 User &Server::_get_user_from_i(size_t icli)
 {
-    for (size_t i = 1; i < _users.size(); ++i)
+    for (size_t i = 0; i < _users.size(); ++i)
         if (_users[i]._get_pfd() == &_pfds[icli])
             return _users[i];
     throw UserNotFoundError();
