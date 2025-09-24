@@ -1,7 +1,7 @@
-#include "../includes/user.hpp"
+#include "../includes/includes.hpp"
 
 
-// ==================== METHODS ====================
+// ==================== GETTERS ====================
 
 
 sockaddr_in &User::_get_addr(void)
@@ -9,19 +9,71 @@ sockaddr_in &User::_get_addr(void)
     return _addr;
 }
 
+pollfd  *User::_get_pfd(void) const
+{
+    return _pfd;
+}
+
+std::string User::_get_msg(void) const
+{
+    return _msg;
+}
+
+Authentication  User::_get_auth(void) const
+{
+    return _auth;
+}
+
+size_t  User::_get_retry(void) const
+{
+    return _retry;
+}
+
+std::string User::_get_username(void) const
+{
+    return _username;
+}
+
+std::string User::_get_nickname(void) const
+{
+    return _nickname;
+}
+
+
+// ==================== SETTERS ====================
+
+
 void    User::_set_pfd(pollfd *pfd)
 {
     _pfd = pfd;
 }
 
-pollfd  *User::_get_pfd(void)
+void    User::_set_msg(std::string msg, bool merge)
 {
-    return _pfd;
+    if (merge)
+        _msg += msg;
+    else
+        _msg = msg;
 }
 
-char    *User::_get_msg_buf(void)
+void    User::_set_auth(Authentication auth)
 {
-    return _msg_buf;
+    _auth = auth;
+}
+
+void    User::_decr_retry(void)
+{
+    _retry--;
+}
+
+void    User::_set_username(std::string username)
+{
+    _username = username;
+}
+
+void    User::_set_nickname(std::string nickname)
+{
+    _nickname = nickname;
 }
 
 
@@ -31,10 +83,11 @@ char    *User::_get_msg_buf(void)
 User::User(void)
 {
     _pfd = NULL;
-    memset(_msg_buf, 0, MSG_BUF_SIZ);
+    _msg = "";
     _username = "";
     _nickname = "";
     _auth = NOT_AUTH;
+    _retry = MAX_RETRY;
 }
 
 User::User(const User &src)
@@ -43,10 +96,11 @@ User::User(const User &src)
     {
         _pfd = src._pfd;
         _addr = src._addr;
-        std::strcpy(_msg_buf, src._msg_buf);
+        _msg = src._msg;
         _username = src._username;
         _nickname = src._nickname;
         _auth = src._auth;
+        _retry = src._retry;
     }
 }
 
@@ -63,10 +117,11 @@ User  &User::operator=(const User &src)
     {
         _pfd = src._pfd;
         _addr = src._addr;
-        std::strcpy(_msg_buf, src._msg_buf);
+        _msg = src._msg;
         _username = src._username;
         _nickname = src._nickname;
         _auth = src._auth;
+        _retry = src._retry;
     }
     return *this;
 }
