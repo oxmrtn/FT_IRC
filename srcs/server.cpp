@@ -104,10 +104,12 @@ void    Server::_handle_auth(User &user, std::string cmd, std::string arg)
             send(user._get_pfd()->fd, msg.c_str(), msg.length(), 0);
             _disconnect_user(user);
         }
-        user._decr_retry();
-        std::ostringstream  oss;
-        oss << "Invalid password, please try again (" << retry << " tries left)";
-        send_to_user(user, oss.str(), true);
+        else {
+            user._decr_retry();
+            std::ostringstream  oss;
+            oss << "Invalid password, please try again (" << retry << " tries left)";
+            send_to_user(user, oss.str(), true);
+        }
     }
 }
 
@@ -249,19 +251,24 @@ void Server::_disconnect_user(User &user)
 {
     char    *ip = inet_ntoa(user._get_addr().sin_addr);
     int     port = ntohs(user._get_addr().sin_port);
-    size_t  i = _get_i_from_user(user);
+    size_t  pfd_i = _get_i_from_user(user);    
+    size_t  user_i = pfd_i - 1;
+    size_t  last_pfd_i = _users.size();
+    size_t  last_user_i = last_pfd_i - 1;
+    
+    close(_pfds[pfd_i].fd);
 
-    close(_pfds[i].fd);
-    size_t last = _users.size();
-    if (i != last) {
-        _pfds[i] = _pfds[last];
-        _users[last - 1]._set_pfd(&_pfds[i]);
-        _users[i - 1] = _users[last - 1];
+    if (pfd_i != last_pfd_i)
+    {
+        _pfds[pfd_i] = _pfds[last_pfd_i];
+        _users[user_i] = _users[last_user_i];
+        _users[user_i]._set_pfd(&_pfds[pfd_i]);
     }
+
     _users.pop_back();
-    _pfds[last].fd = -1;
-    _pfds[last].events = 0;
-    _pfds[last].revents = 0;
+    _pfds[last_pfd_i].fd = -1;
+    _pfds[last_pfd_i].events = 0;
+    _pfds[last_pfd_i].revents = 0;
 
     std::cout << "User disconnected: " << ip << ":" << port << std::endl;
 }
