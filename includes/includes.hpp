@@ -24,5 +24,11 @@
 
 int         err_ret(const std::string msg);
 int         is_zero(const std::string str);
-void        send_to_user(User &user, const std::string &msg, bool set_nl);
-std::string to_low(const std::string &str);
+void        send_to_user(User &user, const std::string &msg, bool is_prompt);
+std::string to_lowercase(const std::string &str);
+std::string trim_spaces(const std::string &str);
+std::string normalize_spaces(const std::string &str);
+std::string deduplicate_spaces(const std::string &str);
+std::string clean_spaces(const std::string &str);
+std::pair<std::string, std::string>
+            split_first(const std::string &str, char delimiter);

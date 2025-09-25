@@ -81,24 +81,16 @@ void    Server::_handle_connection(void)
             _users.push_back(user);
     
             std::cout << "User connection accepted: " << ip << ":" << port << std::endl;
-            send_to_user(user, PASS_MSG, false);
+            send_to_user(user, PASS_MSG, true);
         }
     }
 }
 
-void    Server::_handle_auth(User &user, const std::string &msg)
+void    Server::_handle_auth(User &user, std::string cmd, std::string arg)
 {
-    if (msg.length() < 6)
-    {
+    if (cmd != "PASS" || arg == "")
         send_to_user(user, PASS_MSG, true);
-        return;
-    }
-    std::string prefix = msg.substr(0, 5);
-    std::string content = msg.substr(5);
-
-    if (prefix != "PASS ")
-        send_to_user(user, PASS_MSG, true);
-    else if (content == _pass)
+    else if (arg == _pass)
     {
         user._set_auth(true);
         send_to_user(user, "[ ===== Successfully connected ===== ]\n" + USER_MSG + "\n" + NICK_MSG, true);
@@ -108,7 +100,8 @@ void    Server::_handle_auth(User &user, const std::string &msg)
         size_t  retry = user._get_retry();
         if (retry == 0)
         {
-            send_to_user(user, "Exceeded max tries, disconnected", true);
+            std::string msg = "Exceeded max tries, disconnected";
+            send(user._get_pfd()->fd, msg.c_str(), msg.length(), 0);
             _disconnect_user(user);
         }
         user._decr_retry();
@@ -118,69 +111,102 @@ void    Server::_handle_auth(User &user, const std::string &msg)
     }
 }
 
-void    Server::_config_msgs(User &user, bool set_nl)
+void    Server::_config_msgs(User &user, bool is_prompt)
 {
     std::string username = user._get_username();
     std::string nickname = user._get_nickname();
 
     if (username == "" && nickname == "")
-        send_to_user(user, USER_MSG + "\n" + NICK_MSG, set_nl);
+        send_to_user(user, USER_MSG + "\n" + NICK_MSG, is_prompt);
     else if (username == "")
-        send_to_user(user, USER_MSG, set_nl);
+        send_to_user(user, USER_MSG, is_prompt);
     else if (nickname == "")
-        send_to_user(user, NICK_MSG, set_nl);
+        send_to_user(user, NICK_MSG, is_prompt);
     else
-        send_to_user(user, "[ ===== Successfully authenticated ===== ]\nUse \"HELP\" to see available commands", set_nl);
+        send_to_user(user, "[ ===== Successfully authenticated ===== ]\nType \"HELP\" to see available commands", is_prompt);
 }
 
-void Server::_set_user_field(User &user, std::string &content, const std::string &field, Getter getter, Setter setter)
+void Server::_user_infos_setup(User &user, std::string arg, const std::string field, Getter getter, Setter setter)
 {
     if ((user.*getter)() == "")
     {
-        if (content == "username" && !_is_username_available(content))
+        if (arg == "")
+            _config_msgs(user, true);
+        else if (field == "Username" && !_is_username_available(arg))
         {
-            std::ostringstream oss;
-            oss << "Username \"" << content << "\" is not available";
-            send_to_user(user, oss.str(), true);
-            _config_msgs(user, false);
+            std::string msg = field + "\"" + arg + "\" is not available";
+            send_to_user(user, msg, false);
+            _config_msgs(user, true);
         }
         else
         {
-            (user.*setter)(content);
-            std::ostringstream oss;
-            oss << "Successfully set \"" << content << "\" as " << to_low(field);
-            send_to_user(user, oss.str(), true);
-            _config_msgs(user, false);
+            (user.*setter)(arg);
+            std::string msg = "Successfully set \"" + arg + "\" as " + to_lowercase(field);
+            send_to_user(user, msg, false);
+            _config_msgs(user, true);
         }
     }
     else
     {
-        send_to_user(user, field + " is already set", true);
-        _config_msgs(user, false);
+        send_to_user(user, field + " is already set", false);
+        _config_msgs(user, true);
     }
 }
 
-void    Server::_handle_setup(User &user, const std::string &msg)
+void    Server::_handle_setup(User &user, std::string cmd, std::string arg)
 {
-    if (msg.length() < 6)
-    {
-        _config_msgs(user, true);
-        return;
-    }
-    std::string prefix = msg.substr(0, 5);
-    std::string content = msg.substr(5);
-
-    if (prefix == "USER ")
-        _set_user_field(user, content, "Username", &User::_get_username, &User::_set_username);
-    else if (prefix == "NICK ")
-        _set_user_field(user, content, "Nickname", &User::_get_nickname, &User::_set_nickname);
+    if (cmd == "USER")
+        _user_infos_setup(user, arg, "Username", &User::_get_username, &User::_set_username);
+    else if (cmd == "NICK")
+        _user_infos_setup(user, arg, "Nickname", &User::_get_nickname, &User::_set_nickname);
     else
         _config_msgs(user, true);
 }
 
-void    Server::_handle_message(User &user, const std::string &msg)
+void    Server::_help_cmd(User &user)
 {
+    send_to_user(user, HELP_MSG, true);
+}
 
+void    Server::_logout_cmd(User &user)
+{
+    std::string msg = "Disconnected";
+    send(user._get_pfd()->fd, msg.c_str(), msg.length(), 0);
+    _disconnect_user(user);
+}
+
+void    Server::_whoami_cmd(User &user)
+{
+    std::string msg = "Username: " + user._get_username() + "\nNickname: " + user._get_nickname();
+    send_to_user(user, msg, true);
+}
+
+void    Server::_update_nickname_cmd(User &user, std::string arg)
+{
+    if (arg == "")
+        send_to_user(user, "Nickname cannot be empty", true);
+    else
+    {
+        std::string old = user._get_nickname();
+        user._set_nickname(arg);
+        std::string msg = "Successfully updated nickname from \"" + old + "\" to \"" + arg + "\"";
+        send_to_user(user, msg, true);
+    }
+    
+}
+
+void    Server::_handle_message(User &user, std::string cmd, std::string arg)
+{
+    if (cmd == "HELP")
+        _help_cmd(user);
+    else if (cmd == "LOGOUT")
+        _logout_cmd(user);
+    else if (cmd == "WHOAMI")
+        _whoami_cmd(user);
+    else if (cmd == "NICK")
+        _update_nickname_cmd(user, arg);
+    else
+        send_to_user(user, "Unknown command, type \"HELP\" to see available commands", true);
 }
 
 void    Server::_process_polled(size_t user_i)
@@ -196,15 +222,20 @@ void    Server::_process_polled(size_t user_i)
         std::string msg = user._get_msg();
         if (!msg.empty() && msg[msg.length() - 1] != '\n')
             return;
+
         msg.erase(msg.length() - 1);
+        msg = clean_spaces(msg);
+        std::pair<std::string, std::string> splitted = split_first(msg, ' ');
+        std::string cmd = splitted.first;
+        std::string arg = splitted.second;
 
         bool    auth = user._get_auth();
         if (!auth)
-            _handle_auth(user, msg);
+            _handle_auth(user, cmd, arg);
         else if (user._get_username() == "" || user._get_nickname() == "")
-            _handle_setup(user, msg);
+            _handle_setup(user, cmd, arg);
         else
-            _handle_message(user, msg);
+            _handle_message(user, cmd, arg);
         user._set_msg("", false);
     }
     else if (r_bytes == 0)
