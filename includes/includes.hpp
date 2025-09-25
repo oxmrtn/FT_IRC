@@ -24,7 +24,5 @@
 
 int         err_ret(const std::string msg);
 int         is_zero(const std::string str);
-bool        ends_with(const std::string &str, const std::string &suffix);
-bool        starts_with(const std::string &str, const std::string &prefix);
 void        send_to_user(User &user, const std::string &msg);
 std::string to_low(const std::string &str);

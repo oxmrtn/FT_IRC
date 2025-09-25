@@ -19,7 +19,7 @@ std::string User::_get_msg(void) const
     return _msg;
 }
 
-Authentication  User::_get_auth(void) const
+bool    User::_get_auth(void) const
 {
     return _auth;
 }
@@ -56,7 +56,7 @@ void    User::_set_msg(std::string msg, bool merge)
         _msg = msg;
 }
 
-void    User::_set_auth(Authentication auth)
+void    User::_set_auth(bool auth)
 {
     _auth = auth;
 }
@@ -86,7 +86,7 @@ User::User(void)
     _msg = "";
     _username = "";
     _nickname = "";
-    _auth = NOT_AUTH;
+    _auth = false;
     _retry = MAX_RETRY;
 }
 

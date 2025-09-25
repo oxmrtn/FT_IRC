@@ -8,24 +8,11 @@ std::string to_low(const std::string &str)
     return low;
 }
 
-bool    ends_with(const std::string &str, const std::string &suffix)
-{
-    if (str.length() < suffix.length())
-        return false;
-    return !str.compare(str.length() - suffix.length(), suffix.length(), suffix);
-}
-
-bool    starts_with(const std::string &str, const std::string &prefix)
-{
-    if (str.length() < prefix.length())
-        return false;
-    return !str.compare(0, prefix.length(), prefix);
-}
-
 void    send_to_user(User &user, const std::string &msg)
 {
     int fd = user._get_pfd()->fd;
-    send(fd, msg.c_str(), msg.length(), 0);
+    std::string final = "> " + msg + "\r\n";
+    send(fd, final.c_str(), final.length(), 0);
 }
 
 int err_ret(const std::string msg)
