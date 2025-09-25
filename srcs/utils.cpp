@@ -11,11 +11,11 @@ std::string to_lowercase(const std::string &str)
     return low;
 }
 
-void    send_to_user(User &user, const std::string &msg, bool is_prompt)
+void    send_to_user(User &user, const std::string &msg, bool prompt)
 {
     int fd = user._get_pfd()->fd;
     std::string final = msg + "\n";
-    if (is_prompt)
+    if (prompt)
         final += "> ";
     send(fd, final.c_str(), final.length(), 0);
 }

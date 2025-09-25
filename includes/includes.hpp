@@ -24,7 +24,7 @@
 
 int         err_ret(const std::string msg);
 int         is_zero(const std::string str);
-void        send_to_user(User &user, const std::string &msg, bool is_prompt);
+void        send_to_user(User &user, const std::string &msg, bool prompt);
 std::string to_lowercase(const std::string &str);
 std::string trim_spaces(const std::string &str);
 std::string normalize_spaces(const std::string &str);

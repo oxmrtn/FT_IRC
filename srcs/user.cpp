@@ -87,7 +87,7 @@ User::User(void)
     _username = "";
     _nickname = "";
     _auth = false;
-    _retry = MAX_RETRY;
+    _retry = CON_RETRIES;
 }
 
 User::User(const User &src)

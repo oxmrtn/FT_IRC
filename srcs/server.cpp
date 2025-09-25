@@ -22,7 +22,7 @@ void Server::_init(int port, std::string pass)
     if (bind(_pfds[0].fd, reinterpret_cast<struct sockaddr*>(&tmp_addr), sizeof(tmp_addr)) < 0)
         throw SocketBindError();
         
-    if (listen(_pfds[0].fd, CONS_QUEUE) < 0)
+    if (listen(_pfds[0].fd, CON_QUEUE) < 0)
         throw SocketListenError();
 
     socklen_t   len = sizeof(_addr);
@@ -65,7 +65,7 @@ void    Server::_handle_connection(void)
         int     port = ntohs(addr.sin_port);
         int     i = _users.size() + 1;
         
-        if (_users.size() == MAX_CONS)
+        if (_users.size() == CON_USER_LIMIT)
         {
             std::cout << "User connection refused: " << ip << ":" << port << std::endl;
             std::string msg = "Connection failed, server have reached maximum connexions";
@@ -88,7 +88,7 @@ void    Server::_handle_connection(void)
 
 void    Server::_handle_auth(User &user, std::string cmd, std::string arg)
 {
-    if (cmd != "PASS" || arg == "")
+    if (cmd != "PASS" || arg.empty())
         send_to_user(user, PASS_MSG, true);
     else if (arg == _pass)
     {
@@ -111,37 +111,39 @@ void    Server::_handle_auth(User &user, std::string cmd, std::string arg)
     }
 }
 
-void    Server::_config_msgs(User &user, bool is_prompt)
+void    Server::_config_msgs(User &user, bool prompt)
 {
     std::string username = user._get_username();
     std::string nickname = user._get_nickname();
+    bool        username_notset = username.empty();
+    bool        nickname_notset = nickname.empty();
 
-    if (username == "" && nickname == "")
-        send_to_user(user, USER_MSG + "\n" + NICK_MSG, is_prompt);
-    else if (username == "")
-        send_to_user(user, USER_MSG, is_prompt);
-    else if (nickname == "")
-        send_to_user(user, NICK_MSG, is_prompt);
+    if (username_notset && nickname_notset)
+        send_to_user(user, USER_MSG + "\n" + NICK_MSG, prompt);
+    else if (username_notset)
+        send_to_user(user, USER_MSG, prompt);
+    else if (nickname_notset)
+        send_to_user(user, NICK_MSG, prompt);
     else
-        send_to_user(user, "[ ===== Successfully authenticated ===== ]\nType \"HELP\" to see available commands", is_prompt);
+        send_to_user(user, "[ ===== Successfully authenticated ===== ]\nType \"HELP\" to see available commands", prompt);
 }
 
-void Server::_user_infos_setup(User &user, std::string arg, const std::string field, Getter getter, Setter setter)
+void Server::_user_infos_setup(User &user, std::string name, const std::string field, Getter getter, Setter setter)
 {
-    if ((user.*getter)() == "")
+    if ((user.*getter)().empty())
     {
-        if (arg == "")
+        if (!_is_name_valid(user, name, field, false))
             _config_msgs(user, true);
-        else if (field == "Username" && !_is_username_available(arg))
+        else if (field == "Username" && !_is_username_available(name))
         {
-            std::string msg = field + "\"" + arg + "\" is not available";
+            std::string msg = field + "\"" + name + "\" is not available";
             send_to_user(user, msg, false);
             _config_msgs(user, true);
         }
         else
         {
-            (user.*setter)(arg);
-            std::string msg = "Successfully set \"" + arg + "\" as " + to_lowercase(field);
+            (user.*setter)(name);
+            std::string msg = "Successfully set \"" + name + "\" as " + to_lowercase(field);
             send_to_user(user, msg, false);
             _config_msgs(user, true);
         }
@@ -183,9 +185,7 @@ void    Server::_whoami_cmd(User &user)
 
 void    Server::_update_nickname_cmd(User &user, std::string arg)
 {
-    if (arg == "")
-        send_to_user(user, "Nickname cannot be empty", true);
-    else
+    if (_is_name_valid(user, arg, "Nickname", true))
     {
         std::string old = user._get_nickname();
         user._set_nickname(arg);
@@ -232,7 +232,7 @@ void    Server::_process_polled(size_t user_i)
         bool    auth = user._get_auth();
         if (!auth)
             _handle_auth(user, cmd, arg);
-        else if (user._get_username() == "" || user._get_nickname() == "")
+        else if (user._get_username().empty() || user._get_nickname().empty())
             _handle_setup(user, cmd, arg);
         else
             _handle_message(user, cmd, arg);
@@ -274,6 +274,39 @@ bool    Server::_is_username_available(std::string username)
     return true;
 }
 
+bool    Server::_is_name_valid(User &user, std::string name, const std::string field, bool prompt)
+{
+    if (name.empty())
+    {
+        send_to_user(user, field + " cannot be empty", prompt);
+        return false;
+    }
+    if (name.length() < MIN_NAME_LEN)
+    {
+        std::ostringstream  oss;
+        oss << field << " cannot be less than " << MIN_NAME_LEN << " characters";
+        send_to_user(user, oss.str(), prompt);
+        return false;
+    }
+    else if (name.length() > MAX_NAME_LEN)
+    {
+        std::ostringstream  oss;
+        oss << field << " cannot be more than " << MAX_NAME_LEN << " characters";
+        send_to_user(user, oss.str(), prompt);
+        return false;
+    }
+    for (size_t i = 0; i < name.length(); i++)
+    {
+        if (!std::isalnum(name[i]) && name[i] != '_')
+        {
+            send_to_user(user, field + " can only contain letters, numbers and \'_\'", prompt);
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 
 // ==================== GETTERS ====================
 
@@ -312,7 +345,7 @@ Server::Server(const Server &src)
 {
     if (this != &src)
     {
-        for (size_t i = 0; i < MAX_CONS + 1; i++)
+        for (size_t i = 0; i < CON_USER_LIMIT + 1; i++)
             _pfds[i] = src._pfds[i];
         _addr = src._addr;
         _pass = src._pass;
@@ -334,7 +367,7 @@ Server  &Server::operator=(const Server &src)
 {
     if (this != &src)
     {
-        for (size_t i = 0; i < MAX_CONS + 1; i++)
+        for (size_t i = 0; i < CON_USER_LIMIT + 1; i++)
             _pfds[i] = src._pfds[i];
         _addr = src._addr;
         _pass = src._pass;

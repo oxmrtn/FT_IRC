@@ -1,9 +1,11 @@
 #pragma once
 
-const int           CONS_QUEUE = 5;
-const int           MAX_CONS = 100;
-const int           MSG_BUF_SIZ = 100;
-const int           MAX_RETRY = 3;
+const int           CON_QUEUE = 5;
+const int           CON_USER_LIMIT = 100;
+const int           CON_RETRIES = 3;
+const int           MSG_BUF_SIZ = 512;
+const int           MIN_NAME_LEN = 3;
+const int           MAX_NAME_LEN = 10;
 
 const std::string   PASS_MSG = "Please authenticate with \"PASS <password>\"";
 const std::string   USER_MSG = "Please set your username with \"USER <username>\"";
