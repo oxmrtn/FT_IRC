@@ -21,11 +21,12 @@ class Server
         // METHODS
         void                _init(int port, std::string pass);
         void                _set_user_field(User &user, std::string &content, const std::string &field_name, Getter getter, Setter setter);
+        void                _process_polled(size_t user_i);
         void                _handle_connection(void);
-        void                _handle_message(size_t user_i);
-        void                _auth_process(User &user, const std::string &msg);
-        void                _config_process(User &user, const std::string &msg);
-        void                _config_msgs(User &user);
+        void                _handle_message(User &user, const std::string &msg);
+        void                _handle_auth(User &user, const std::string &msg);
+        void                _handle_setup(User &user, const std::string &msg);
+        void                _config_msgs(User &user, bool set_nl);
         bool                _is_username_available(std::string username);
         void                _disconnect_user(User &user);
         // GETTERS

@@ -24,5 +24,5 @@
 
 int         err_ret(const std::string msg);
 int         is_zero(const std::string str);
-void        send_to_user(User &user, const std::string &msg);
+void        send_to_user(User &user, const std::string &msg, bool set_nl);
 std::string to_low(const std::string &str);

@@ -8,10 +8,12 @@ std::string to_low(const std::string &str)
     return low;
 }
 
-void    send_to_user(User &user, const std::string &msg)
+void    send_to_user(User &user, const std::string &msg, bool set_nl)
 {
     int fd = user._get_pfd()->fd;
-    std::string final = "> " + msg + "\r\n";
+    std::string final = msg + "\r\n";
+    if (set_nl)
+        final = "\n" + final;
     send(fd, final.c_str(), final.length(), 0);
 }
 
