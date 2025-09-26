@@ -9,6 +9,12 @@ void Server::_init(int port, std::string pass)
     _pfds[0].fd = socket(AF_INET, SOCK_STREAM, 0);
     if (_pfds[0].fd < 0)
         throw SocketInitError();
+    int opt = 1;
+    if (setsockopt(_pfds[0].fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+        throw SocketInitError();
+    if (setsockopt(_pfds[0].fd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0)
+        throw SocketInitError();
+
     _pfds[0].events = POLLIN;
 
     _pass = pass;
@@ -34,7 +40,7 @@ void Server::_init(int port, std::string pass)
 
 void    Server::_run(void)
 {
-    while (true)
+    while (g_sig)
     {
         int polled = poll(_pfds, _users.size() + 1, 0);
         if (polled < 0)
@@ -205,7 +211,7 @@ void    Server::_whisper_cmd(User &user, std::string arg)
     std::string dest_username = splitted.first;
     std::string msg = splitted.second;
 
-    if (dest_username.empty())
+    if (dest_username.empty() || msg.empty())
     {
         send_to_user(user, "Missing parameter: WHISPER <username> <message>", true);
         return;

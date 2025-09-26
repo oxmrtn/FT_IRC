@@ -32,3 +32,5 @@ std::string deduplicate_spaces(const std::string &str);
 std::string clean_spaces(const std::string &str);
 std::pair<std::string, std::string>
             split_first(const std::string &str, char delimiter);
+
+extern int  g_sig;
