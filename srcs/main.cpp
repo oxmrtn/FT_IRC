@@ -25,11 +25,6 @@ void sig_handler(int signo)
         std::cerr << std::endl;
         g_sig = 0;
     }
-    else if (signo == SIGQUIT)
-    {
-        std::cerr << "^D" << std::endl;
-        g_sig = 0;
-    }
 }
 
 int main(int ac, char **av)

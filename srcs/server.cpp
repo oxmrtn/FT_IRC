@@ -6,16 +6,19 @@
 
 void Server::_init(int port, std::string pass)
 {
-    _pfds[0].fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (_pfds[0].fd < 0)
+    _pfds[0].fd = STDIN_FILENO;
+    _pfds[0].events = POLLIN;
+
+    _pfds[1].fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (_pfds[1].fd < 0)
         throw SocketInitError();
     int opt = 1;
-    if (setsockopt(_pfds[0].fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+    if (setsockopt(_pfds[1].fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
         throw SocketInitError();
-    if (setsockopt(_pfds[0].fd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0)
+    if (setsockopt(_pfds[1].fd, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt)) < 0)
         throw SocketInitError();
 
-    _pfds[0].events = POLLIN;
+    _pfds[1].events = POLLIN;
 
     _pass = pass;
 
@@ -25,31 +28,51 @@ void Server::_init(int port, std::string pass)
     tmp_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     memset(tmp_addr.sin_zero, 0, sizeof(tmp_addr.sin_zero));
 
-    if (bind(_pfds[0].fd, reinterpret_cast<struct sockaddr*>(&tmp_addr), sizeof(tmp_addr)) < 0)
+    if (bind(_pfds[1].fd, reinterpret_cast<struct sockaddr*>(&tmp_addr), sizeof(tmp_addr)) < 0)
         throw SocketBindError();
         
-    if (listen(_pfds[0].fd, CON_QUEUE) < 0)
+    if (listen(_pfds[1].fd, CON_QUEUE) < 0)
         throw SocketListenError();
 
     socklen_t   len = sizeof(_addr);
-    getsockname(_pfds[0].fd, reinterpret_cast<sockaddr*>(&_addr), &len);
+    getsockname(_pfds[1].fd, reinterpret_cast<sockaddr*>(&_addr), &len);
     int running_port = ntohs(_addr.sin_port);
 
     std::cout << "IRC server running on port: " << running_port << std::endl;
+}
+
+bool    Server::_handle_sigquit(void)
+{
+    char    buf[MSG_BUF_SIZ];
+
+    ssize_t r_bytes = read(_pfds[0].fd, buf, MSG_BUF_SIZ - 1);
+
+    if (r_bytes == 0)
+    {
+        std::cerr << "^D" << std::endl;
+        g_sig = 0;
+        return true;
+    }
+    else if (r_bytes < 0)
+        err_ret(strerror(errno));
+    return false;
 }
 
 void    Server::_run(void)
 {
     while (g_sig)
     {
-        int polled = poll(_pfds, _users.size() + 1, 0);
-        if (polled < 0)
+        int polled = poll(_pfds, _users.size() + 2, 0);
+        if (polled < 0 && errno != EINTR)
             err_ret(strerror(errno));
         else if (polled > 0)
         {
             if (_pfds[0].revents & POLLIN)
+                if (_handle_sigquit())
+                    return;
+            if (_pfds[1].revents & POLLIN)
                 _handle_connection();
-            for (size_t i = 1; i < _users.size() + 1; i++)
+            for (size_t i = 2; i < _users.size() + 2; i++)
                 if (_pfds[i].revents & POLLIN)
                     _process_polled(i);
         }
@@ -62,14 +85,14 @@ void    Server::_handle_connection(void)
     sockaddr_in &addr = user._get_addr();
     socklen_t   len = sizeof(addr);
 
-    int fd = accept(_pfds[0].fd, reinterpret_cast<struct sockaddr*>(&addr), &len);
+    int fd = accept(_pfds[1].fd, reinterpret_cast<struct sockaddr*>(&addr), &len);
     if (fd < 0)
         err_ret(strerror(errno));
     else
     {
         char    *ip = inet_ntoa(addr.sin_addr);
         int     port = ntohs(addr.sin_port);
-        int     i = _users.size() + 1;
+        int     i = _users.size() + 2;
         
         if (_users.size() == CON_USER_LIMIT)
         {
@@ -275,9 +298,8 @@ void    Server::_process_polled(size_t user_i)
     }
     else if (r_bytes == 0)
         _disconnect_user(user);
-    else {
+    else
         err_ret(strerror(errno));
-    }
 }
 
 void Server::_disconnect_user(User &user)
@@ -285,9 +307,9 @@ void Server::_disconnect_user(User &user)
     char    *ip = inet_ntoa(user._get_addr().sin_addr);
     int     port = ntohs(user._get_addr().sin_port);
     size_t  pfd_i = _get_i_from_user(user);    
-    size_t  user_i = pfd_i - 1;
+    size_t  user_i = pfd_i - 2;
     size_t  last_pfd_i = _users.size();
-    size_t  last_user_i = last_pfd_i - 1;
+    size_t  last_user_i = last_pfd_i - 2;
     
     close(_pfds[pfd_i].fd);
 
@@ -373,7 +395,7 @@ User    &Server::_get_user_from_i(size_t user_i)
 
 size_t  Server::_get_i_from_user(User &user)
 {
-    for (size_t i = 1; i < _users.size() + 1; i++)
+    for (size_t i = 2; i < _users.size() + 2; i++)
         if (user._get_pfd() == &_pfds[i])
             return i;
     throw UserNotFoundError();
@@ -397,7 +419,7 @@ Server::Server(const Server &src)
 {
     if (this != &src)
     {
-        for (size_t i = 0; i < CON_USER_LIMIT + 1; i++)
+        for (size_t i = 0; i < CON_USER_LIMIT + 2; i++)
             _pfds[i] = src._pfds[i];
         _addr = src._addr;
         _pass = src._pass;
@@ -407,7 +429,7 @@ Server::Server(const Server &src)
 
 Server::~Server()
 {
-    for (size_t i = 0; i < _users.size() + 1; i++)
+    for (size_t i = 1; i < _users.size() + 1; i++)
         close(_pfds[i].fd);    
 }
 
@@ -419,7 +441,7 @@ Server  &Server::operator=(const Server &src)
 {
     if (this != &src)
     {
-        for (size_t i = 0; i < CON_USER_LIMIT + 1; i++)
+        for (size_t i = 0; i < CON_USER_LIMIT + 2; i++)
             _pfds[i] = src._pfds[i];
         _addr = src._addr;
         _pass = src._pass;

@@ -11,7 +11,7 @@
 class Server
 {
     private:
-        pollfd              _pfds[CON_USER_LIMIT + 1];
+        pollfd              _pfds[CON_USER_LIMIT + 2];
         sockaddr_in         _addr;
         std::string         _pass;
         std::vector<User>   _users;
@@ -22,6 +22,7 @@ class Server
         void                _init(int port, std::string pass);
         void                _user_infos_setup(User &user, std::string name, const std::string field, Getter getter, Setter setter);
         void                _process_polled(size_t user_i);
+        bool                _handle_sigquit(void);
         void                _handle_connection(void);
         void                _handle_message(User &user, std::string cmd, std::string arg);
         void                _handle_auth(User &user, std::string cmd, std::string arg);
