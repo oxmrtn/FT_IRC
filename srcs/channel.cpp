@@ -11,6 +11,7 @@ Channel::Channel()
     this->_iOnly = false;
     this->_pwd = "{ default_channel_pwd }";
     this->_pwdNeeded = false;
+    this->_uLimit = MAX_USER_BY_CHANNEL;
 }
 
 Channel::Channel(const Channel& other)
@@ -22,7 +23,8 @@ Channel::Channel(const Channel& other)
       _uList(other._uList),
       _oList(other._oList),
       _iOnly(other._iOnly),
-      _invList(other._invList)
+      _invList(other._invList),
+      _uLimit(other._uLimit)
 {}
 
 Channel::Channel(std::string name)
@@ -49,6 +51,7 @@ Channel & Channel::operator=(const Channel & other)
             _oList = other._oList;
             _iOnly = other._iOnly;
             _invList = other._invList;
+            _uLimit = other._uLimit;
     }
     return (*this);
 }
@@ -92,60 +95,68 @@ bool Channel::setTopic(std::string topic, User & user)
 
 bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 {
-    //things to do
-    // handle i o k t l mode !
     if (!UserInVector(user, this->_oList))
         return (false);
     switch (mode)
     {
         case 'i':
         {
-            if (sign == '+')
-            {
-                _iOnly = true;
-            }
-            else
-                _iOnly = false;
+            _iOnly = (sign == '+');
             break;
         }
         case 'o':
         {
             try
             {
-                User temp = getUserByUname(parameters);
+                User temp = getUserByUname(parameters, _uList);
                 if (sign == '+' && !UserInVector(temp, _oList))
                         _oList.push_back(temp);
                 if (sign == '-' && UserInVector(temp, _oList))
                 {
-                    // REMOVE USER FROM O_LIST
+                   remUserInVector(temp, _oList);
                 }
-            }catch(std::exception &e)
+            }catch(UserNotFound &e)
             {
-                // USER NOT FOUND
+                e.what();
                 return (false);
             }
             break;
         }
         case 'k':
         {
+            if (sign == '-')
+            {
+                _pwdNeeded = false;
+                _pwd = "";
+            }
+            else if (sign == '+' && !parameters.empty())
+            {
+                _pwdNeeded = true;
+                _pwd = parameters;
+            }
             break;
         }
         case 't':
         {
-            if (sign == '+')
-            {
-                _otopic = true;
-            }
-            else
-            {
-                _otopic = false;
-            }
+            _otopic = (sign == '+');
             break;
         }
         case 'l':
         {
+            if (sign == '-')
+                _uLimit = MAX_USER_BY_CHANNEL;
+            if (sign == '+')
+            {
+                int tmp;
+                std::stringstream ss(parameters);
+                if (!(ss >> tmp))
+                    return false;
+                _uLimit = tmp;
+            }
             break;
         }
+        default :
+            return (false);
     }
     return (true);
 }
@@ -156,7 +167,8 @@ void Channel::displayAllMessage()
     for (std::deque<Message>::iterator it = this->_messList.begin();
          it != this->_messList.end(); ++it)
     {
-            it->displayMessage();
+            std::string temp = it->getMessage();
+            
     }
     return ;
 }  

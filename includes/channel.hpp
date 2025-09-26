@@ -20,6 +20,7 @@ class Channel
         bool                    _iOnly;
         std::vector<User>       _invList;
         std::deque<Message>    _messList;
+        int                    _uLimit;
 
     public:
         Channel();

@@ -7,6 +7,7 @@ const int           CON_RETRIES = 3;
 const int           MSG_BUF_SIZ = 512;
 const int           MIN_NAME_LEN = 3;
 const int           MAX_NAME_LEN = 10;
+const int           MAX_USER_BY_CHANNEL = 1024;
 
 const std::string   PASS_MSG = "Please authenticate with \"PASS <password>\"";
 const std::string   USER_MSG = "Please set your username with \"USER <username>\"";

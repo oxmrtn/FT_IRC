@@ -10,6 +10,7 @@ class Message
         std::string sender;
         std::string content;
         std::string timestamp;
+        std::string _message;
         Message();
 
     public:
@@ -17,6 +18,6 @@ class Message
         Message(Message & other);
         Message & operator=(Message & other);
         ~Message();
-        void displayMessage();
+        std::string & getMessage();
 };
 

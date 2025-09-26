@@ -5,6 +5,19 @@ bool UserInVector(const User& user, const std::vector<User>& users)
     return std::find(users.begin(), users.end(), user) != users.end();
 }
 
+void remUserInVector(const User &user, std::vector<User> &users)
+{
+    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it)
+    {
+        if (*it == user)
+        {
+            users.erase(it);
+            return;
+        }
+    }
+    return ;
+}
+
 std::string getTimestamp()
 {
     std::time_t now = std::time(NULL);
@@ -15,3 +28,18 @@ std::string getTimestamp()
 
     return (std::string(buffer));
 }
+
+User  getUserByUname(std::string username, std::vector<User> list)
+{
+    for (size_t i = 0; i < list.size(); i++)
+        if (list[i]._get_username() == username)
+            return list[i];
+    throw UserNotFound();
+}
+
+const char *UserNotFound::what() const throw()
+{
+    return "error: user not found";
+}
+
+

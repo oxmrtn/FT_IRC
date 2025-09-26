@@ -8,6 +8,7 @@ Message::Message(User & sender, std::string message)
     this->sender = sender.getNickname();
     this->content = message;
     this->timestamp = getTimestamp();
+    this->_message = this->timestamp + " -- " + this->sender + "\n" + this->content +  "\n";
 }
 
 Message::Message(Message & other)
@@ -27,8 +28,8 @@ Message & Message::operator=(Message &other)
     return (*this);
 }
 
-void Message::displayMessage()
+std::string & Message::getMessage()
 {
-    std::cout << this->timestamp << " -- " << this->sender << std::endl;
-    std::cout << this->content << std::endl;
+    return _message;
 }
+
