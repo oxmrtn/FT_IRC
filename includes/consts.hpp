@@ -13,10 +13,11 @@ const std::string   NICK_MSG = "Please set your nickname with \"NICK <nickname>\
 const std::string   HELP_MSG =
     "[ ===== HELP MENU ===== ]\n"
     "|    GLOBAL COMMANDS    |\n"
-    "- HELP\n\tDisplays help menu\n"
+    "- HELP\n\tDisplays the help menu\n"
     "- LOGOUT\n\tDisconnect yourself from the IRC server\n"
     "- WHOAMI\n\tDisplays your username and nickname\n"
     "- NICK <nickname>\n\tChange your nickname\n"
+    "- WHISPER <username> <message>\n\tSend a private message to the specified user\n"
     "|    CHANNEL COMMANDS   |\n"
     "- KICK <username>\n\tKick a user from the channel\n"
     "- INVITE <username>\n\tInvite a user in the channel\n"

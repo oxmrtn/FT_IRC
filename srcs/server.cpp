@@ -88,8 +88,10 @@ void    Server::_handle_connection(void)
 
 void    Server::_handle_auth(User &user, std::string cmd, std::string arg)
 {
-    if (cmd != "PASS" || arg.empty())
+    if (cmd != "PASS")
         send_to_user(user, PASS_MSG, true);
+    else if (arg.empty())
+        send_to_user(user, "Missing parameter: PASS <password>", true);
     else if (arg == _pass)
     {
         user._set_auth(true);
@@ -197,6 +199,29 @@ void    Server::_update_nickname_cmd(User &user, std::string arg)
     
 }
 
+void    Server::_whisper_cmd(User &user, std::string arg)
+{
+    std::pair<std::string, std::string> splitted = split_first(arg, ' ');
+    std::string dest_username = splitted.first;
+    std::string msg = splitted.second;
+
+    if (dest_username.empty())
+    {
+        send_to_user(user, "Missing parameter: WHISPER <username> <message>", true);
+        return;
+    }
+
+    User    dest = _get_user_from_username(dest_username);
+    if (dest._get_username().empty())
+        send_to_user(user, "User not found", true);
+    else
+    {
+        std::string final = "\033[2K\r" + user._get_nickname() + " (@" + user._get_username() + "): " + msg;
+        send_to_user(dest, final, true);
+        send(user._get_pfd()->fd, "> ", 2, 0);
+    }
+}
+
 void    Server::_handle_message(User &user, std::string cmd, std::string arg)
 {
     if (cmd == "HELP")
@@ -207,6 +232,8 @@ void    Server::_handle_message(User &user, std::string cmd, std::string arg)
         _whoami_cmd(user);
     else if (cmd == "NICK")
         _update_nickname_cmd(user, arg);
+    else if (cmd == "WHISPER")
+        _whisper_cmd(user, arg);
     else
         send_to_user(user, "Unknown command, type \"HELP\" to see available commands", true);
 }
@@ -222,7 +249,7 @@ void    Server::_process_polled(size_t user_i)
         buf[r_bytes] = '\0';
         user._set_msg(buf, true);
         std::string msg = user._get_msg();
-        if (!msg.empty() && msg[msg.length() - 1] != '\n')
+        if (msg.empty() || msg[msg.length() - 1] != '\n')
             return;
 
         msg.erase(msg.length() - 1);
@@ -285,7 +312,10 @@ bool    Server::_is_name_valid(User &user, std::string name, const std::string f
 {
     if (name.empty())
     {
-        send_to_user(user, field + " cannot be empty", prompt);
+        if (field == "Username")
+            send_to_user(user, "Missing parameter: USER <username>", prompt);
+        else
+            send_to_user(user, "Missing parameter: NICK <nickname>", prompt);
         return false;
     }
     if (name.length() < MIN_NAME_LEN)
@@ -316,6 +346,15 @@ bool    Server::_is_name_valid(User &user, std::string name, const std::string f
 
 
 // ==================== GETTERS ====================
+
+
+User    Server::_get_user_from_username(std::string username)
+{
+    for (size_t i = 0; i < _users.size(); i++)
+        if (_users[i]._get_username() == username)
+            return _users[i];
+    return User();
+}
 
 
 User    &Server::_get_user_from_i(size_t user_i)

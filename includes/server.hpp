@@ -33,9 +33,11 @@ class Server
         void                _help_cmd(User &user);
         void                _logout_cmd(User &user);
         void                _whoami_cmd(User &user);
+        void                _whisper_cmd(User &user, std::string arg);
         void                _update_nickname_cmd(User &user, std::string arg);
         // GETTERS
         User                &_get_user_from_i(size_t user_i);
+        User                _get_user_from_username(std::string username);
         size_t              _get_i_from_user(User &user);
 
     public:
