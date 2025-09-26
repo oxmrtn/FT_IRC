@@ -225,7 +225,6 @@ void    Server::_update_nickname_cmd(User &user, std::string arg)
         std::string msg = "Successfully updated nickname from \"" + old + "\" to \"" + arg + "\"";
         send_to_user(user, msg, true);
     }
-    
 }
 
 void    Server::_whisper_cmd(User &user, std::string arg)
@@ -241,7 +240,9 @@ void    Server::_whisper_cmd(User &user, std::string arg)
     }
 
     User    dest = _get_user_from_username(dest_username);
-    if (dest._get_username().empty())
+    if (user._get_username() == dest._get_username())
+        send_to_user(user, "Cannot send messages to yourself", true);
+    else if (dest._get_username().empty())
         send_to_user(user, "User not found", true);
     else
     {
@@ -368,7 +369,7 @@ bool    Server::_is_name_valid(User &user, std::string name, const std::string f
             return false;
         }
     }
-    
+
     return true;
 }
 
