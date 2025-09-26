@@ -1,15 +1,19 @@
 #include "../includes/tools.hpp"
 
-bool UserInVector(const User& user, const std::vector<User>& users)
+bool UserInVector(const User& user, const std::vector<User*>& users)
 {
-    return std::find(users.begin(), users.end(), user) != users.end();
+        for (std::vector<User*>::const_iterator it = users.begin(); it != users.end(); ++it) {
+        if (*it == &user)
+            return true;
+    }
+    return false;
 }
 
-void remUserInVector(const User &user, std::vector<User> &users)
+void remUserInVector(const User &user, std::vector<User*> &users)
 {
-    for (std::vector<User>::iterator it = users.begin(); it != users.end(); ++it)
+    for (std::vector<User*>::iterator it = users.begin(); it != users.end(); ++it)
     {
-        if (*it == user)
+        if (*it == &user)
         {
             users.erase(it);
             return;
@@ -29,11 +33,13 @@ std::string getTimestamp()
     return (std::string(buffer));
 }
 
-User  getUserByUname(std::string username, std::vector<User> list)
+User* getUserByUname(const std::string& username, const std::vector<User*>& list)
 {
     for (size_t i = 0; i < list.size(); i++)
-        if (list[i]._get_username() == username)
+    {
+        if (list[i]->_get_username() == username)
             return list[i];
+    }
     throw UserNotFound();
 }
 

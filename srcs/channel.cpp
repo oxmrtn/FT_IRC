@@ -58,28 +58,86 @@ Channel & Channel::operator=(const Channel & other)
 
 
 // ==================== METHODS ====================
-
-bool Channel::kick(const User & user)
+bool Channel::kick(User* user)
 {
-    for (std::vector<User>::iterator it = this->_uList.begin();
-         it != this->_uList.end(); ++it)
+    bool deleted = false;
+
+    // _uList
+    for (std::vector<User*>::iterator it = _uList.begin(); it != _uList.end(); )
     {
-        if (user == *it) {
-            this->_uList.erase(it);
-            return (true);
+        if (*it == user)
+        {
+            it = _uList.erase(it);
+            deleted = true;
         }
+        else
+            ++it;
     }
-    return (false);
+
+    // _oList
+    for (std::vector<User*>::iterator it = _oList.begin(); it != _oList.end(); )
+    {
+        if (*it == user)
+        {
+            it = _oList.erase(it);
+            deleted = true;
+        }
+        else
+            ++it;
+    }
+
+    // _invList
+    for (std::vector<User*>::iterator it = _invList.begin(); it != _invList.end(); )
+    {
+        if (*it == user)
+        {
+            it = _invList.erase(it);
+            deleted = true;
+        }
+        else
+            ++it;
+    }
+
+    return deleted;
 }
 
-bool Channel::invite(const User & user)
+bool Channel::join(User* user, const std::string& parameters)
 {
-    if (!UserInVector(user, this->_uList))
+    if (UserInVector(*user, _uList))
+        return true;
+
+    if (_uList.size() >= static_cast<size_t>(_uLimit))
+        return false;
+
+    if (_iOnly && !UserInVector(*user, _invList))
+        return false;
+
+    if (_pwdNeeded && _pwd != parameters)
+        return false;
+
+    _uList.push_back(user);
+
+    for (std::vector<User*>::iterator it = _invList.begin(); it != _invList.end(); ++it)
     {
-        this->_uList.push_back(user);
-        return (true);
+        if (*it == user)
+        {
+            _invList.erase(it);
+            break;
+        }
     }
-    return (false);
+
+    return true;
+}
+
+
+bool Channel::invite(User* user)
+{
+    if (!UserInVector(*user, _invList))
+    {
+        _invList.push_back(user);
+        return true;
+    }
+    return false;
 }
 
 
@@ -108,12 +166,12 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
         {
             try
             {
-                User temp = getUserByUname(parameters, _uList);
-                if (sign == '+' && !UserInVector(temp, _oList))
+                User *temp = getUserByUname(parameters, _uList);
+                if (sign == '+' && !UserInVector(*temp, _oList))
                         _oList.push_back(temp);
-                if (sign == '-' && UserInVector(temp, _oList))
+                if (sign == '-' && UserInVector(*temp, _oList))
                 {
-                   remUserInVector(temp, _oList);
+                   remUserInVector(*temp, _oList);
                 }
             }catch(UserNotFound &e)
             {
@@ -150,7 +208,10 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
                 int tmp;
                 std::stringstream ss(parameters);
                 if (!(ss >> tmp))
+                {
+                    _uLimit = MAX_USER_BY_CHANNEL;
                     return false;
+                }
                 _uLimit = tmp;
             }
             break;

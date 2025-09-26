@@ -5,10 +5,10 @@
 class User;
 class Channel;
 
-bool        UserInVector(const User& user, const std::vector<User>& users);
+bool        UserInVector(const User& user, const std::vector<User*>& users);
 std::string getTimestamp();
-User        getUserByUname(std::string username, std::vector<User> list);
-void remUserInVector(const User &user, std::vector<User> &users);
+User        *getUserByUname(std::string username, std::vector<User*> list);
+void        remUserInVector(const User &user, std::vector<User*> &users);
 
 
 class UserNotFound : public std::exception

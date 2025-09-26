@@ -15,10 +15,10 @@ class Channel
         bool                    _otopic;
         std::string             _pwd;
         bool                    _pwdNeeded;
-        std::vector<User>       _uList;
-        std::vector<User>       _oList;
+        std::vector<User*>       _uList;
+        std::vector<User*>       _oList;
         bool                    _iOnly;
-        std::vector<User>       _invList;
+        std::vector<User*>       _invList;
         std::deque<Message>    _messList;
         int                    _uLimit;
 
@@ -28,8 +28,9 @@ class Channel
         Channel(const Channel & other);
         Channel & operator=(const Channel & other);
         ~Channel();
-        bool kick(const User & user);
-        bool invite(const User & user);
+        bool kick(User * user);
+        bool invite(User * user);
+        bool join(User * user, const std::string & parameters);
         bool mode(char mode, User & user, char sign, std::string parameters);
         bool setTopic(std::string topic, User & user);
         void displayLastMessage();
