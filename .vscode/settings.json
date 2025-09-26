@@ -48,6 +48,11 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "cstring": "cpp",
+<<<<<<< HEAD
         "ctime": "cpp"
+=======
+        "*.gitignore": "cpp",
+        "sstream": "cpp"
+>>>>>>> 5d409f289e6946fd49db99d92cc5845698f1a524
     }
 }

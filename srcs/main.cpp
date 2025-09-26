@@ -33,7 +33,7 @@ int main(int ac, char **av)
     if (args_check(ac, av))
         return (1);
 
-    int port = std::atoi(av[0]);
+    int port = std::atoi(av[1]);
 
     try
     {
@@ -42,7 +42,7 @@ int main(int ac, char **av)
     }
     catch(const std::exception& e)
     {
-        std::cerr << "error: " << e.what() << '\n';
+        err_ret(e.what());
     }
 
     return (0);
