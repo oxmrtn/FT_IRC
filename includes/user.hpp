@@ -4,7 +4,7 @@
 #include <netinet/in.h>
 #include <string>
 
-class User
+class   User
 {
     private:
         pollfd      *_pfd;
@@ -13,7 +13,6 @@ class User
         std::string _username;
         std::string _nickname;
         bool        _auth;
-        size_t      _retry;
 
     public:
         User();
@@ -25,7 +24,6 @@ class User
         pollfd      *_get_pfd(void) const;
         std::string _get_msg(void) const;
         bool        _get_auth(void) const;
-        size_t      _get_retry(void) const;
         std::string _get_username(void) const;
         std::string _get_nickname(void) const;
         // SETTERS
@@ -34,5 +32,4 @@ class User
         void        _set_auth(bool auth);
         void        _set_username(std::string username);
         void        _set_nickname(std::string nickname);
-        void        _decr_retry(void);
 };

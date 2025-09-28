@@ -5,10 +5,11 @@
 #include <string>
 #include <vector>
 #include <exception>
-#include "consts.hpp"
+#include "const.hpp"
 #include "user.hpp"
+#include "message.hpp"
 
-class Server
+class   Server
 {
     private:
         pollfd              _pfds[CON_USER_LIMIT + 2];
@@ -20,29 +21,25 @@ class Server
         typedef void (User::*Setter)(std::string);
         // METHODS
         void                _init(int port, std::string pass);
-        void                _user_infos_setup(User &user, std::string name, const std::string field, Getter getter, Setter setter);
         void                _process_polled(size_t user_i);
         bool                _handle_sigquit(void);
         void                _handle_connection(void);
-        void                _handle_message(User &user, std::string cmd, std::string arg);
-        void                _handle_auth(User &user, std::string cmd, std::string arg);
-        void                _handle_setup(User &user, std::string cmd, std::string arg);
-        void                _config_msgs(User &user, bool prompt);
-        bool                _is_username_available(std::string username);
-        bool                _is_name_valid(User &user, std::string name, const std::string field, bool prompt);
+        void                _handle_message(User &user, Message &parsed);
+        void                _handle_pass(User &user, bool auth, std::string command, std::vector<std::string> params);
+        void                _handle_names(User &user, bool auth, std::string command, std::vector<std::string> params);
+        bool                _is_supported_command(std::string command, std::vector<std::string> params);
+        void                _send_response(User &user, std::string command, std::string error_code, std::string trailing);
+        bool                _is_nickname_available(std::string nickname);
+        bool                _is_name_valid(User &user, std::string name, bool is_nick);
+        bool                _is_char_accepted(char c, bool is_nick);
         void                _disconnect_user(User &user);
-        void                _help_cmd(User &user);
-        void                _logout_cmd(User &user);
-        void                _whoami_cmd(User &user);
-        void                _whisper_cmd(User &user, std::string arg);
-        void                _update_nickname_cmd(User &user, std::string arg);
         // GETTERS
         User                &_get_user_from_i(size_t user_i);
         User                _get_user_from_username(std::string username);
         size_t              _get_i_from_user(User &user);
+        Server(void);
 
     public:
-        Server(void);
         Server(int port, std::string pass);
         Server(const Server &src);
         Server &operator=(const Server &src);

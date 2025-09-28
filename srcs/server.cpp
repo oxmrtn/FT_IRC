@@ -1,4 +1,5 @@
 #include "../includes/includes.hpp"
+#include "../includes/message.hpp"
 
 
 // ==================== METHODS ====================
@@ -96,10 +97,7 @@ void    Server::_handle_connection(void)
         
         if (_users.size() == CON_USER_LIMIT)
         {
-            std::cout << "User connection refused: " << ip << ":" << port << std::endl;
-            std::string msg = "Connection failed, server have reached maximum connexions";
-            send(fd, msg.c_str(), msg.length(), 0);
-        
+            std::cout << "User connection refused: " << ip << ":" << port << std::endl;        
             close(fd);
         }
         else
@@ -110,206 +108,17 @@ void    Server::_handle_connection(void)
             _users.push_back(user);
     
             std::cout << "User connection accepted: " << ip << ":" << port << std::endl;
-            send_to_user(user, PASS_MSG, true);
         }
     }
-}
-
-void    Server::_handle_auth(User &user, std::string cmd, std::string arg)
-{
-    if (cmd != "PASS")
-        send_to_user(user, PASS_MSG, true);
-    else if (arg.empty())
-        send_to_user(user, "Missing parameter: PASS <password>", true);
-    else if (arg == _pass)
-    {
-        user._set_auth(true);
-        send_to_user(user, "[ ===== Successfully connected ===== ]\n" + USER_MSG + "\n" + NICK_MSG, true);
-    }
-    else
-    {
-        size_t  retry = user._get_retry();
-        if (retry == 0)
-        {
-            std::string msg = "Exceeded max tries, disconnected";
-            send(user._get_pfd()->fd, msg.c_str(), msg.length(), 0);
-            _disconnect_user(user);
-        }
-        else {
-            user._decr_retry();
-            std::ostringstream  oss;
-            oss << "Invalid password, please try again (" << retry << " tries left)";
-            send_to_user(user, oss.str(), true);
-        }
-    }
-}
-
-void    Server::_config_msgs(User &user, bool prompt)
-{
-    std::string username = user._get_username();
-    std::string nickname = user._get_nickname();
-    bool        username_notset = username.empty();
-    bool        nickname_notset = nickname.empty();
-
-    if (username_notset && nickname_notset)
-        send_to_user(user, USER_MSG + "\n" + NICK_MSG, prompt);
-    else if (username_notset)
-        send_to_user(user, USER_MSG, prompt);
-    else if (nickname_notset)
-        send_to_user(user, NICK_MSG, prompt);
-    else
-        send_to_user(user, "[ ===== Successfully authenticated ===== ]\nType \"HELP\" to see available commands", prompt);
-}
-
-void Server::_user_infos_setup(User &user, std::string name, const std::string field, Getter getter, Setter setter)
-{
-    if ((user.*getter)().empty())
-    {
-        if (!_is_name_valid(user, name, field, false))
-            _config_msgs(user, true);
-        else if (field == "Username" && !_is_username_available(name))
-        {
-            std::string msg = field + "\"" + name + "\" is not available";
-            send_to_user(user, msg, false);
-            _config_msgs(user, true);
-        }
-        else
-        {
-            (user.*setter)(name);
-            std::string msg = "Successfully set \"" + name + "\" as " + to_lowercase(field);
-            send_to_user(user, msg, false);
-            _config_msgs(user, true);
-        }
-    }
-    else
-    {
-        send_to_user(user, field + " is already set", false);
-        _config_msgs(user, true);
-    }
-}
-
-void    Server::_handle_setup(User &user, std::string cmd, std::string arg)
-{
-    if (cmd == "USER")
-        _user_infos_setup(user, arg, "Username", &User::_get_username, &User::_set_username);
-    else if (cmd == "NICK")
-        _user_infos_setup(user, arg, "Nickname", &User::_get_nickname, &User::_set_nickname);
-    else
-        _config_msgs(user, true);
-}
-
-void    Server::_help_cmd(User &user)
-{
-    send_to_user(user, HELP_MSG, true);
-}
-
-void    Server::_logout_cmd(User &user)
-{
-    std::string msg = "Disconnected";
-    send(user._get_pfd()->fd, msg.c_str(), msg.length(), 0);
-    _disconnect_user(user);
-}
-
-void    Server::_whoami_cmd(User &user)
-{
-    std::string msg = "Username: " + user._get_username() + "\nNickname: " + user._get_nickname();
-    send_to_user(user, msg, true);
-}
-
-void    Server::_update_nickname_cmd(User &user, std::string arg)
-{
-    if (_is_name_valid(user, arg, "Nickname", true))
-    {
-        std::string old = user._get_nickname();
-        user._set_nickname(arg);
-        std::string msg = "Successfully updated nickname from \"" + old + "\" to \"" + arg + "\"";
-        send_to_user(user, msg, true);
-    }
-}
-
-void    Server::_whisper_cmd(User &user, std::string arg)
-{
-    std::pair<std::string, std::string> splitted = split_first(arg, ' ');
-    std::string dest_username = splitted.first;
-    std::string msg = splitted.second;
-
-    if (dest_username.empty() || msg.empty())
-    {
-        send_to_user(user, "Missing parameter: WHISPER <username> <message>", true);
-        return;
-    }
-
-    User    dest = _get_user_from_username(dest_username);
-    if (user._get_username() == dest._get_username())
-        send_to_user(user, "Cannot send messages to yourself", true);
-    else if (dest._get_username().empty())
-        send_to_user(user, "User not found", true);
-    else
-    {
-        std::string final = "\033[2K\r" + user._get_nickname() + " (@" + user._get_username() + "): " + msg;
-        send_to_user(dest, final, true);
-        send(user._get_pfd()->fd, "> ", 2, 0);
-    }
-}
-
-void    Server::_handle_message(User &user, std::string cmd, std::string arg)
-{
-    if (cmd == "HELP")
-        _help_cmd(user);
-    else if (cmd == "LOGOUT")
-        _logout_cmd(user);
-    else if (cmd == "WHOAMI")
-        _whoami_cmd(user);
-    else if (cmd == "NICK")
-        _update_nickname_cmd(user, arg);
-    else if (cmd == "WHISPER")
-        _whisper_cmd(user, arg);
-    else
-        send_to_user(user, "Unknown command, type \"HELP\" to see available commands", true);
-}
-
-void    Server::_process_polled(size_t user_i)
-{
-    User    &user = _get_user_from_i(user_i);
-    char    buf[MSG_BUF_SIZ];
-
-    ssize_t r_bytes = recv(_pfds[user_i].fd, buf, MSG_BUF_SIZ - 1, 0);
-    
-    if (r_bytes > 0) {
-        buf[r_bytes] = '\0';
-        user._set_msg(buf, true);
-        std::string msg = user._get_msg();
-        if (msg.empty() || msg[msg.length() - 1] != '\n')
-            return;
-
-        msg.erase(msg.length() - 1);
-        msg = clean_spaces(msg);
-        std::pair<std::string, std::string> splitted = split_first(msg, ' ');
-        std::string cmd = splitted.first;
-        std::string arg = splitted.second;
-
-        bool    auth = user._get_auth();
-        if (!auth)
-            _handle_auth(user, cmd, arg);
-        else if (user._get_username().empty() || user._get_nickname().empty())
-            _handle_setup(user, cmd, arg);
-        else
-            _handle_message(user, cmd, arg);
-        user._set_msg("", false);
-    }
-    else if (r_bytes == 0)
-        _disconnect_user(user);
-    else
-        err_ret(strerror(errno));
 }
 
 void Server::_disconnect_user(User &user)
 {
     char    *ip = inet_ntoa(user._get_addr().sin_addr);
     int     port = ntohs(user._get_addr().sin_port);
-    size_t  pfd_i = _get_i_from_user(user);    
+    size_t  pfd_i = _get_i_from_user(user);
     size_t  user_i = pfd_i - 2;
-    size_t  last_pfd_i = _users.size();
+    size_t  last_pfd_i = _users.size() + 1;
     size_t  last_user_i = last_pfd_i - 2;
     
     close(_pfds[pfd_i].fd);
@@ -329,44 +138,193 @@ void Server::_disconnect_user(User &user)
     std::cout << "User disconnected: " << ip << ":" << port << std::endl;
 }
 
-bool    Server::_is_username_available(std::string username)
+void    Server::_send_response(User &user, std::string command, std::string error_code, std::string trailing)
+{
+    std::vector<std::string>    response_params;
+    std::string                 nickname;
+
+    if (nickname.empty())
+        response_params.push_back("*");
+    else
+        response_params.push_back(nickname);
+    if (!command.empty())
+        response_params.push_back(command);
+    Message reponse(SERVER_NAME, error_code, response_params, trailing);
+    reponse._send(user);
+}
+
+bool    Server::_is_supported_command(std::string command, std::vector<std::string> params)
+{
+    bool        valid_cmd = false;
+    const char  *supported_cmds_arr[] = {
+        "PASS", "NICK", "USER"
+    };
+
+    for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
+        if (supported_cmds_arr[i] == command)
+            valid_cmd = true;
+
+    if (command.empty() || params.size() > 15 || !valid_cmd)
+        return false;
+    return true;
+}
+
+void    Server::_handle_pass(User &user, bool auth, std::string command, std::vector<std::string> params)
+{
+    if (auth)
+        _send_response(user, "", ERR_ALREADYREGISTERED_CODE, ERR_ALREADYREGISTERED_MSG);
+    else if (params.empty())
+        _send_response(user, command, ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
+    else if (params[0] != _pass)
+    {
+        _send_response(user, "", ERR_PASSWDMISMATCH_CODE, ERR_PASSWDMISMATCH_MSG);
+        _disconnect_user(user);
+    }
+    else
+        user._set_auth(true);
+}
+
+void Server::_handle_names(User &user, bool auth, std::string command, std::vector<std::string> params)
+{
+    bool        no_params = params.empty();
+    std::string name;
+    if (!no_params)
+        name = params[0];
+
+    if (!auth)
+        _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
+    else if (command == "USER")
+    {
+        if (!user._get_username().empty())
+            _send_response(user, "", ERR_ALREADYREGISTERED_CODE, ERR_ALREADYREGISTERED_MSG);
+        else if (!no_params)
+            _send_response(user, "", ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
+        else if (!_is_name_valid(user, name, false))
+            return;
+        user._set_username(name);
+    }
+    else if (command == "NICK")
+    {
+        if (no_params)
+            _send_response(user, "", ERR_NONICKNAMEGIVEN_CODE, ERR_NONICKNAMEGIVEN_MSG);
+        else if (!_is_name_valid(user, name, true))
+            return;
+        else if (!user._get_nickname().empty() && user._get_nickname() == name)
+            return;
+        else if (!_is_nickname_available(name))
+            _send_response(user, name, ERR_NICKNAMEINUSE_CODE, ERR_NICKNAMEINUSE_MSG);
+        else
+            user._set_nickname(name);
+    }
+}
+
+void    Server::_handle_message(User &user, Message &parsed)
+{
+    bool                        auth = user._get_auth();
+    std::string                 command = parsed._get_command();
+    std::vector<std::string>    params = parsed._get_params();
+
+    if (!_is_supported_command(command, params))
+        _send_response(user, command, ERR_UNKNOWNCOMMAND_CODE, ERR_UNKNOWNCOMMAND_MSG);
+    else if (command == "PASS")
+        _handle_pass(user, auth, command, params);
+    else if (command == "USER" || command == "NICK") { 
+        _handle_names(user, auth, command, params);
+    }
+    else if (!auth || user._get_username().empty() || user._get_nickname().empty())
+        _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
+}
+
+void    Server::_process_polled(size_t user_i)
+{
+    User    &user = _get_user_from_i(user_i);
+    char    buf[MSG_BUF_SIZ];
+
+    ssize_t r_bytes = recv(_pfds[user_i].fd, buf, MSG_BUF_SIZ - 1, 0);
+    
+    if (r_bytes > 0) {
+        buf[r_bytes] = '\0';
+        user._set_msg(buf, true);
+        std::string msg = user._get_msg();
+
+        if (msg.empty() || !ends_with(msg, "\n"))
+            return;
+        
+        msg.erase(msg.length() - 1);
+        msg = clean_spaces(msg);
+
+        Message parsed(msg);
+
+        _handle_message(user, parsed);
+
+        user._set_msg("", false);
+    }
+    else if (r_bytes == 0)
+        _disconnect_user(user);
+    else
+        err_ret(strerror(errno));
+}
+
+bool    Server::_is_nickname_available(std::string nickname)
 {
     for (size_t i = 0; i < _users.size(); ++i)
-        if (_users[i]._get_username() == username)
+        if (_users[i]._get_nickname() == nickname)
             return false;
     return true;
 }
 
-bool    Server::_is_name_valid(User &user, std::string name, const std::string field, bool prompt)
+bool    Server::_is_char_accepted(char c, bool is_nick)
+{
+    if (is_nick && c != '-' && c != '[' && c != ']' && c != '{' && c != '}' && c != '^' && c != '_' && c != '|')
+        return false;
+    else if (!is_nick && c != '_')
+        return false;
+    return true;
+}
+
+bool    Server::_is_name_valid(User &user, std::string name, bool is_nick)
 {
     if (name.empty())
     {
-        if (field == "Username")
-            send_to_user(user, "Missing parameter: USER <username>", prompt);
+        if (is_nick)
+            _send_response(user, name, ERR_NONICKNAMEGIVEN_CODE, ERR_NONICKNAMEGIVEN_MSG);
         else
-            send_to_user(user, "Missing parameter: NICK <nickname>", prompt);
+            _send_response(user, name, ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
         return false;
     }
-    if (name.length() < MIN_NAME_LEN)
+
+    size_t  max_len = !is_nick ? (MAX_NAME_LEN + 1) : MAX_NAME_LEN;
+    if (name.length() < MIN_NAME_LEN || name.length() > max_len)
     {
-        std::ostringstream  oss;
-        oss << field << " cannot be less than " << MIN_NAME_LEN << " characters";
-        send_to_user(user, oss.str(), prompt);
+        if (is_nick)
+            _send_response(user, name, ERR_ERRONEUSNICKNAME_CODE, ERR_ERRONEUSNICKNAME_MSG);
+        else
+            _send_response(user, name, ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
         return false;
     }
-    else if (name.length() > MAX_NAME_LEN)
+ 
+    if (is_nick && !std::isalpha(name[0]))
     {
-        std::ostringstream  oss;
-        oss << field << " cannot be more than " << MAX_NAME_LEN << " characters";
-        send_to_user(user, oss.str(), prompt);
+        _send_response(user, name, ERR_ERRONEUSNICKNAME_CODE, ERR_ERRONEUSNICKNAME_MSG);
         return false;
     }
-    for (size_t i = 0; i < name.length(); i++)
+
+    for (size_t i = 0; i < name.length(); ++i)
     {
-        if (!std::isalnum(name[i]) && name[i] != '_')
+        char c = name[i];
+
+        if (!std::isalnum(c) && !_is_char_accepted(c, is_nick))
         {
-            send_to_user(user, field + " can only contain letters, numbers and \'_\'", prompt);
-            return false;
+            if (is_nick)
+            {
+                _send_response(user, name, ERR_ERRONEUSNICKNAME_CODE, ERR_ERRONEUSNICKNAME_MSG);
+                return false;
+            }
+            else
+            {
+                _send_response(user, name, ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
+                return false;
+            }
         }
     }
 

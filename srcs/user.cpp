@@ -24,11 +24,6 @@ bool    User::_get_auth(void) const
     return _auth;
 }
 
-size_t  User::_get_retry(void) const
-{
-    return _retry;
-}
-
 std::string User::_get_username(void) const
 {
     return _username;
@@ -61,11 +56,6 @@ void    User::_set_auth(bool auth)
     _auth = auth;
 }
 
-void    User::_decr_retry(void)
-{
-    _retry--;
-}
-
 void    User::_set_username(std::string username)
 {
     _username = username;
@@ -87,7 +77,6 @@ User::User(void)
     _username = "";
     _nickname = "";
     _auth = false;
-    _retry = CON_RETRIES;
 }
 
 User::User(const User &src)
@@ -100,7 +89,6 @@ User::User(const User &src)
         _username = src._username;
         _nickname = src._nickname;
         _auth = src._auth;
-        _retry = src._retry;
     }
 }
 
@@ -121,7 +109,6 @@ User  &User::operator=(const User &src)
         _username = src._username;
         _nickname = src._nickname;
         _auth = src._auth;
-        _retry = src._retry;
     }
     return *this;
 }

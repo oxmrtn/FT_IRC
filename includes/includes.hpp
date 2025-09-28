@@ -17,15 +17,16 @@
 #include <cstring>
 #include <cerrno>
 #include <sstream>
+#include <algorithm>
 
-#include "consts.hpp"
+#include "const.hpp"
 #include "user.hpp"
 #include "server.hpp"
 
 int         err_ret(const std::string msg);
 int         is_zero(const std::string str);
-void        send_to_user(User &user, const std::string &msg, bool prompt);
 std::string to_lowercase(const std::string &str);
+bool        ends_with(const std::string &str, const std::string &suffix);
 std::string trim_spaces(const std::string &str);
 std::string normalize_spaces(const std::string &str);
 std::string deduplicate_spaces(const std::string &str);

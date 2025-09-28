@@ -11,13 +11,11 @@ std::string to_lowercase(const std::string &str)
     return low;
 }
 
-void    send_to_user(User &user, const std::string &msg, bool prompt)
+bool    ends_with(const std::string &str, const std::string &suffix)
 {
-    int fd = user._get_pfd()->fd;
-    std::string final = msg + "\n";
-    if (prompt)
-        final += "> ";
-    send(fd, final.c_str(), final.length(), 0);
+    if (str.length() < suffix.length())
+        return false;
+    return !str.compare(str.length() - suffix.length(), suffix.length(), suffix);
 }
 
 int err_ret(const std::string msg)
