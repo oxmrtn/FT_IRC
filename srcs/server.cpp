@@ -141,7 +141,7 @@ void Server::_disconnect_user(User &user)
 void    Server::_send_response(User &user, std::string command, std::string error_code, std::string trailing)
 {
     std::vector<std::string>    response_params;
-    std::string                 nickname;
+    std::string                 nickname = user._get_nickname();
 
     if (nickname.empty())
         response_params.push_back("*");
@@ -228,9 +228,8 @@ void    Server::_handle_message(User &user, Message &parsed)
         _send_response(user, command, ERR_UNKNOWNCOMMAND_CODE, ERR_UNKNOWNCOMMAND_MSG);
     else if (command == "PASS")
         _handle_pass(user, auth, command, params);
-    else if (command == "USER" || command == "NICK") { 
+    else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
-    }
     else if (!auth || user._get_username().empty() || user._get_nickname().empty())
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
 }
@@ -316,15 +315,10 @@ bool    Server::_is_name_valid(User &user, std::string name, bool is_nick)
         if (!std::isalnum(c) && !_is_char_accepted(c, is_nick))
         {
             if (is_nick)
-            {
                 _send_response(user, name, ERR_ERRONEUSNICKNAME_CODE, ERR_ERRONEUSNICKNAME_MSG);
-                return false;
-            }
             else
-            {
                 _send_response(user, name, ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
-                return false;
-            }
+            return false;
         }
     }
 
