@@ -56,7 +56,7 @@ std::string Message::_compose(void) const
     return msg;
 }
 
-void Message::_send(User &target) const
+void Message::_send(User &target)
 {
     int fd = target._get_pfd()->fd;
     std::string msg = _compose();
@@ -67,10 +67,10 @@ void Message::_send(User &target) const
 // ==================== GETTERS ====================
 
 
-const std::vector<std::string> &Message::_get_params(void) const { return _params; }
-const std::string &Message::_get_trailing(void) const { return _trailing; }
-const std::string &Message::_get_command(void) const { return _command; }
-const std::string &Message::_get_prefix(void) const { return _prefix; }
+const std::vector<std::string>  &Message::_get_params(void) const { return _params; }
+const std::string               &Message::_get_trailing(void) const { return _trailing; }
+const std::string               &Message::_get_command(void) const { return _command; }
+const std::string               &Message::_get_prefix(void) const { return _prefix; }
 
 
 // ==================== CONSTRUCTORS ====================
@@ -83,7 +83,10 @@ Message::Message(void)
 
 Message::Message(const Message &src)
 {
-    *this = src;
+    _prefix = src._prefix;
+    _command = src._command;
+    _params = src._params;
+    _trailing = src._trailing;
 }
 
 Message::Message(const std::string &msg)
@@ -101,7 +104,8 @@ Message::Message(const std::string prefix, const std::string command,
     _trailing = trailing;
 }
 
-Message::~Message() {}
+Message::~Message()
+{}
 
 
 // ==================== OPERATORS ====================

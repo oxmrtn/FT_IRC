@@ -7,14 +7,15 @@
 class Message
 {
     private:
+        Message(void);
         std::string                 _prefix;
         std::string                 _command;
         std::vector<std::string>    _params;
         std::string                 _trailing;
+        // METHODS
         void                        _default_init(void);
         void                        _parse(const std::string &raw);
         std::string                 _compose(void) const;
-        Message(void);
 
     public:
         Message(const std::string &msg);
@@ -26,7 +27,7 @@ class Message
         Message &operator=(const Message &src);
         ~Message();
         // METHODS
-        void                            _send(User &dest) const;
+        void                            _send(User &dest);
         // GETTERS
         const std::vector<std::string>  &_get_params(void) const;
         const std::string               &_get_prefix(void) const;

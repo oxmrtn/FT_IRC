@@ -335,14 +335,13 @@ bool    Server::_is_name_valid(User &user, std::string name, bool is_nick)
 // ==================== GETTERS ====================
 
 
-User    Server::_get_user_from_username(std::string username)
+User    Server::_get_user_from_username(std::string username) const
 {
     for (size_t i = 0; i < _users.size(); i++)
         if (_users[i]._get_username() == username)
             return _users[i];
     return User();
 }
-
 
 User    &Server::_get_user_from_i(size_t user_i)
 {
@@ -352,7 +351,7 @@ User    &Server::_get_user_from_i(size_t user_i)
     throw UserNotFoundError();
 }
 
-size_t  Server::_get_i_from_user(User &user)
+size_t  Server::_get_i_from_user(User &user) const
 {
     for (size_t i = 2; i < _users.size() + 2; i++)
         if (user._get_pfd() == &_pfds[i])
@@ -376,14 +375,11 @@ Server::Server(int port, std::string pass)
 
 Server::Server(const Server &src)
 {
-    if (this != &src)
-    {
-        for (size_t i = 0; i < CON_USER_LIMIT + 2; i++)
-            _pfds[i] = src._pfds[i];
-        _addr = src._addr;
-        _pass = src._pass;
-        _users = src._users;
-    }
+    for (size_t i = 0; i < CON_USER_LIMIT + 2; i++)
+        _pfds[i] = src._pfds[i];
+    _addr = src._addr;
+    _pass = src._pass;
+    _users = src._users;
 }
 
 Server::~Server()

@@ -15,7 +15,7 @@ class   User
         bool        _auth;
 
     public:
-        User();
+        User(void);
         User(const User &src);
         User &operator=(const User &src);
         ~User();

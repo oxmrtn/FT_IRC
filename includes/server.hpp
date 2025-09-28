@@ -12,13 +12,11 @@
 class   Server
 {
     private:
+        Server(void);
         pollfd              _pfds[CON_USER_LIMIT + 2];
         sockaddr_in         _addr;
         std::string         _pass;
         std::vector<User>   _users;
-        // ALIASES
-        typedef std::string (User::*Getter)() const;
-        typedef void (User::*Setter)(std::string);
         // METHODS
         void                _init(int port, std::string pass);
         void                _process_polled(size_t user_i);
@@ -35,9 +33,8 @@ class   Server
         void                _disconnect_user(User &user);
         // GETTERS
         User                &_get_user_from_i(size_t user_i);
-        User                _get_user_from_username(std::string username);
-        size_t              _get_i_from_user(User &user);
-        Server(void);
+        User                _get_user_from_username(std::string username) const;
+        size_t              _get_i_from_user(User &user) const;
 
     public:
         Server(int port, std::string pass);
