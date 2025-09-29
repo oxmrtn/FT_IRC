@@ -9,6 +9,9 @@
 #include "./user.hpp"
 #include "message.hpp"
 
+class User;
+class Message;
+
 class   Server
 {
     private:

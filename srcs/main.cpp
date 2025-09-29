@@ -1,21 +1,6 @@
 #include "../includes/server.hpp"
 #include "../includes/user.hpp"
 
-int err_ret(const std::string msg)
-{
-    std::cerr << "error: " << msg << std::endl;
-    return (1);
-}
-
-int is_zero(const std::string str)
-{
-    for (size_t i = 0; i < str.length(); i++)
-        if (str[i] != '0')
-            return (0);
-
-    return (1);
-}
-
 int g_sig = 1;
 
 int args_check(int ac, char **av)
