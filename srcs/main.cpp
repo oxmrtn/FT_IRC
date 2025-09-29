@@ -1,4 +1,20 @@
-#include "../includes/includes.hpp"
+#include "../includes/server.hpp"
+#include "../includes/user.hpp"
+
+int err_ret(const std::string msg)
+{
+    std::cerr << "error: " << msg << std::endl;
+    return (1);
+}
+
+int is_zero(const std::string str)
+{
+    for (size_t i = 0; i < str.length(); i++)
+        if (str[i] != '0')
+            return (0);
+
+    return (1);
+}
 
 int g_sig = 1;
 
@@ -7,14 +23,10 @@ int args_check(int ac, char **av)
     if (ac != 3)
         return (err_ret("invalid arguments: expecting: <port> <password>"));
     
-    if (!is_zero(av[1]))
-    {
-        long    port = std::atol(av[1]);
-        
-        if (port < 1 || port > 65535)
-            return (err_ret("invalid arguments: <port> is expecting an integer in range 0-65535"));
-    }
-    
+    long    port = std::atol(av[1]);
+
+    if (!port || port < 1023 || port > 65535)
+        return (err_ret("invalid arguments: <port> is expecting an integer in range 1023-65535"));
     return (0);
 }
 
