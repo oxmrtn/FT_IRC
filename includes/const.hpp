@@ -7,6 +7,7 @@
 #define MSG_BUF_SIZ                 512
 #define MIN_NAME_LEN                3
 #define MAX_NAME_LEN                9
+#define MAX_USER_BY_CHANNEL         128
 
 #define ERR_UNKNOWNCOMMAND_CODE     "412"
 #define ERR_UNKNOWNCOMMAND_MSG      "Unknown command"

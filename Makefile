@@ -19,7 +19,7 @@ CYAN        = \033[0;96m
 RESET_LINE  = \033[A\033[K
 
 # Files
-SRC_FILE    = user.cpp server.cpp main.cpp utils.cpp message.cpp
+SRC_FILE    = user.cpp server.cpp main.cpp utils.cpp message.cpp channel.cpp tools.cpp
 SRCS        = $(addprefix $(SRCS_DIR), $(SRC_FILE))
 OBJ         = $(patsubst $(SRCS_DIR)%.cpp, $(OBJ_DIR)%.o, $(SRCS))
 DEP         = $(OBJ:.o=.d)

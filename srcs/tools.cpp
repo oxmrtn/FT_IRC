@@ -33,7 +33,7 @@ std::string getTimestamp()
     return (std::string(buffer));
 }
 
-User* getUserByUname(const std::string& username, const std::vector<User*>& list)
+User *getUserByUname(const std::string& username, const std::vector<User*> & list)
 {
     for (size_t i = 0; i < list.size(); i++)
     {
@@ -41,6 +41,15 @@ User* getUserByUname(const std::string& username, const std::vector<User*>& list
             return list[i];
     }
     throw UserNotFound();
+}
+
+const Channel & getChanbyName(const std::string & channame, const std::vector<Channel> & list)
+{
+        for (size_t i = 0; i < list.size(); i++)
+    {
+        if (list[i]._getName() == channame)
+            return list[i];
+    }
 }
 
 const char *UserNotFound::what() const throw()

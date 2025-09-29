@@ -218,3 +218,7 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 }
 
 
+// ==================== GETTER ====================
+
+const std::string & Channel::_getName() const { return _name; };
+const std::string & Channel::_getTopic() const { return _topic; };

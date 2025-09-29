@@ -6,20 +6,23 @@
 #include <vector>
 #include <exception>
 #include "const.hpp"
-#include "./user.hpp"
+#include "user.hpp"
 #include "message.hpp"
+#include "channel.hpp"
 
 class User;
 class Message;
+class Channel;
 
 class   Server
 {
     private:
         Server(void);
-        pollfd              _pfds[CON_USER_LIMIT + 2];
-        sockaddr_in         _addr;
-        std::string         _pass;
-        std::vector<User>   _users;
+        pollfd                  _pfds[CON_USER_LIMIT + 2];
+        sockaddr_in             _addr;
+        std::string             _pass;
+        std::vector<User>       _users;
+        std::vector<Channel>    _channels;
         // METHODS
         void                _init(int port, std::string pass);
         void                _process_polled(size_t user_i);
