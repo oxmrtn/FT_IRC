@@ -62,7 +62,6 @@ bool Channel::kick(User* user)
 {
     bool deleted = false;
 
-    // _uList
     for (std::vector<User*>::iterator it = _uList.begin(); it != _uList.end(); )
     {
         if (*it == user)
@@ -73,8 +72,6 @@ bool Channel::kick(User* user)
         else
             ++it;
     }
-
-    // _oList
     for (std::vector<User*>::iterator it = _oList.begin(); it != _oList.end(); )
     {
         if (*it == user)
@@ -85,8 +82,6 @@ bool Channel::kick(User* user)
         else
             ++it;
     }
-
-    // _invList
     for (std::vector<User*>::iterator it = _invList.begin(); it != _invList.end(); )
     {
         if (*it == user)
@@ -223,31 +218,3 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 }
 
 
-void Channel::displayAllMessage()
-{
-    for (std::deque<Message>::iterator it = this->_messList.begin();
-         it != this->_messList.end(); ++it)
-    {
-            std::string temp = it->getMessage();
-            
-    }
-    return ;
-}  
-
-void Channel::displayLastMessage()
-{
-    if (_messList.size() == 0)
-        return ;
-    _messList[this->_messList.size() - 1].displayMessage();
-    return ;
-}
-
-void Channel::addMessage(const Message & message)
-{
-    if (_messList.size() == MAX_MSG_CHANNEL)
-    {
-        _messList.pop_front();
-    }
-    _messList.push_back(message);
-    return ;
-}

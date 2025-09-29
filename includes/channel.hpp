@@ -19,7 +19,6 @@ class Channel
         std::vector<User*>       _oList;
         bool                    _iOnly;
         std::vector<User*>       _invList;
-        std::deque<Message>    _messList;
         int                    _uLimit;
 
     public:
