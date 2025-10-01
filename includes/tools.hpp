@@ -14,3 +14,7 @@ void        remUserInVector(const User &user, std::vector<User*> &users);
 
 class UserNotFound : public std::exception
     {   public: virtual const char *what() const throw();};
+
+
+class ChannelNotFound : public std::exception
+    {   public: virtual const char *what() const throw();};

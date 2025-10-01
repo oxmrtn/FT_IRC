@@ -50,11 +50,17 @@ const Channel & getChanbyName(const std::string & channame, const std::vector<Ch
         if (list[i]._getName() == channame)
             return list[i];
     }
+    throw ChannelNotFound();
 }
 
 const char *UserNotFound::what() const throw()
 {
     return "error: user not found";
+}
+
+const char *ChannelNotFound::what() const throw()
+{
+    return "error: channel not found";
 }
 
 
