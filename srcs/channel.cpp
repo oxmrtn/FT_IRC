@@ -9,7 +9,7 @@ Channel::Channel()
     this->_topic = "{ default_channel_topic }";
     this->_otopic = false;
     this->_iOnly = false;
-    this->_pwd = "{ default_channel_pwd }";
+    this->_pwd = "";
     this->_pwdNeeded = false;
     this->_uLimit = MAX_USER_BY_CHANNEL;
 }
@@ -58,10 +58,12 @@ Channel & Channel::operator=(const Channel & other)
 
 
 // ==================== METHODS ====================
-bool Channel::kick(User* user)
+bool Channel::kick(User* user, User *op)
 {
     bool deleted = false;
 
+    if (!UserInVector(*op, _oList))
+        return (false);
     for (std::vector<User*>::iterator it = _uList.begin(); it != _uList.end(); )
     {
         if (*it == user)
@@ -133,6 +135,15 @@ bool Channel::invite(User* user)
         return true;
     }
     return false;
+}
+
+bool Channel::addOpp(User *user)
+{
+    if (!UserInVector(*user, _oList))
+    {
+        _oList.push_back(user);
+    }
+    return true;
 }
 
 

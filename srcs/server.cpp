@@ -224,12 +224,93 @@ void    Server::_handle_message(User &user, Message &parsed)
     std::string                 command = parsed._get_command();
     std::vector<std::string>    params = parsed._get_params();
 
+    std::cout << "command = " << command << std::endl;
+    for (size_t i = 0; i < params.size(); i++)
+        std::cout << "params " << i << " = " << params[i] << std::endl;
     if (!_is_supported_command(command, params))
         _send_response(user, command, ERR_UNKNOWNCOMMAND_CODE, ERR_UNKNOWNCOMMAND_MSG);
     else if (command == "PASS")
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
+    else if (command == "JOIN")
+    {
+        try {
+            Channel chan = getChanbyName(params[0], _channels);
+            std::string key = "";
+            if (params.size() == 2)
+                key = params[1];
+            if (chan.join(&user, key))
+                std::cout << user._get_username() << "successfully joined " << chan._getName() << std::endl;
+            else
+                std::cout << user._get_username() << "didnt joined " << chan._getName() << std::endl;
+            // MESSAGE AUX USERSS + gestion code erreur etc etc etc
+        }catch (ChannelNotFound &e)
+        {
+            Channel chan = Channel(params[0]);
+            chan.addOpp(&user);
+            _channels.push_back(chan);
+            std::cout << user._get_username() << "successfully created " << chan._getName() << std::endl;
+        }
+    }
+    else if (command == "KICK")
+    {
+        try{
+            Channel chan = getChanbyName(params[0], _channels);
+            User tokick = getUserByUname(params[1], _users );
+            std::string comment = "";
+            if (params.size() == 3)
+                comment = params[3];
+            if (chan.kick(&tokick, &user ))
+                std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
+        }catch(ChannelNotFound &e)
+        {
+            return ;
+        }catch (UserNotFound &e)
+        {
+            return ;
+        }
+    }
+    else if (command == "INVITE")
+    {
+        try{
+            Channel chan = getChanbyName(params[0], _channels);
+            User toinvite = getUserByUname(params[1]);
+            if (chan.invite(&toinvite))
+                    std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
+        }catch(ChannelNotFound &e)
+        {
+            return ;
+        }catch(UserNotFound & e)
+        {
+            return ;
+        }
+    }
+    else if (command == "TOPIC")
+    {
+        try{
+            Channel chan = getChanbyName(params[0], _channels);
+            if (params.size() == 1)
+            {
+                //send topic
+                std::cout << chan._getName() << "topic's =" << chan.getTopics() << std::endl;
+            }
+            else
+            {
+                if (chan.setTopic(params[1], &user))
+                {
+                    std::cout << user._get_username << "successfully changed topic" << std::endl;
+                    // MESSAGE VALIDATION
+                }
+            }
+        }catch(ChannelNotFound &e)
+        {
+
+            return ;
+        }
+    }
+    else if (command == "MODE")
+        // change mod
     else if (!auth || user._get_username().empty() || user._get_nickname().empty())
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
 }

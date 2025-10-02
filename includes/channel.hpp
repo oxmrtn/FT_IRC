@@ -26,11 +26,12 @@ class Channel
         Channel(const Channel & other);
         Channel & operator=(const Channel & other);
         ~Channel();
-        bool kick(User * user);
+        bool kick(User * user, User * op);
         bool invite(User * user);
         bool join(User * user, const std::string & parameters);
         bool mode(char mode, User & user, char sign, std::string parameters);
         bool setTopic(std::string topic, User & user);
+        bool addOpp(User  * user);
         const std::string & _getName() const ;
         const std::string & _getTopic() const ;
 };

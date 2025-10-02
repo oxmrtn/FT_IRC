@@ -21,7 +21,7 @@ class   Server
         pollfd                  _pfds[CON_USER_LIMIT + 2];
         sockaddr_in             _addr;
         std::string             _pass;
-        std::vector<User>       _users;
+        std::vector<User>      & _users;
         std::vector<Channel>    _channels;
         // METHODS
         void                _init(int port, std::string pass);
