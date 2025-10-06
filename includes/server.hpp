@@ -21,7 +21,7 @@ class   Server
         pollfd                  _pfds[CON_USER_LIMIT + 2];
         sockaddr_in             _addr;
         std::string             _pass;
-        std::vector<User>      & _users;
+        std::vector<User>       _users;
         std::vector<Channel>    _channels;
         // METHODS
         void                _init(int port, std::string pass);
@@ -32,7 +32,8 @@ class   Server
         void                _handle_pass(User &user, bool auth, std::string command, std::vector<std::string> params);
         void                _handle_names(User &user, bool auth, std::string command, std::vector<std::string> params);
         bool                _is_supported_command(std::string command, std::vector<std::string> params);
-        void                _send_response(User &user, std::string command, std::string error_code, std::string trailing);
+        void                _send_response(User &user, std::string command, std::string error_code, std::string trailing)
+        void                _send_error(User &user, const std::string &command, const ChannelException &e);
         bool                _is_nickname_available(std::string nickname);
         bool                _is_name_valid(User &user, std::string name, bool is_nick);
         bool                _is_char_accepted(char c, bool is_nick);

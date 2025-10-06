@@ -62,8 +62,13 @@ bool Channel::kick(User* user, User *op)
 {
     bool deleted = false;
 
+    if (!UserInVector(*op, _uList))
+        throw ErrNotOnChannel(_name);
+
     if (!UserInVector(*op, _oList))
-        return (false);
+        throw ErrChanOpPrivsNeeded(_name);
+    if (!UserInVector(*target, _uList))
+        throw ErrUserNotInChannel(target->getName(), _name);
     for (std::vector<User*>::iterator it = _uList.begin(); it != _uList.end(); )
     {
         if (*it == user)
@@ -101,16 +106,16 @@ bool Channel::kick(User* user, User *op)
 bool Channel::join(User* user, const std::string& parameters)
 {
     if (UserInVector(*user, _uList))
-        return true;
+        return;
 
-    if (_uList.size() >= static_cast<size_t>(_uLimit))
-        return false;
+    if (_uLimit > 0 && _uList.size() >= static_cast<size_t>(_uLimit))
+        throw ErrChannelIsFull(_name);
 
     if (_iOnly && !UserInVector(*user, _invList))
-        return false;
+        throw ErrInviteOnlyChan(_name);
 
-    if (_pwdNeeded && _pwd != parameters)
-        return false;
+    if (_pwdNeeded && _pwd != key)
+        throw ErrBadChannelKey(_name);
 
     _uList.push_back(user);
 
@@ -122,110 +127,100 @@ bool Channel::join(User* user, const std::string& parameters)
             break;
         }
     }
-
     return true;
 }
 
 
 bool Channel::invite(User* user)
 {
+    if (UserInVector(*user, _uList))
+        throw ErrUserOnChannel(user->getName(), _name);
+
     if (!UserInVector(*user, _invList))
-    {
         _invList.push_back(user);
-        return true;
-    }
-    return false;
+    return (true);
 }
 
 bool Channel::addOpp(User *user)
 {
+    if (!UserInVector(*user, _uList))
+        throw ErrNotOnChannel(_name);
     if (!UserInVector(*user, _oList))
-    {
         _oList.push_back(user);
-    }
     return true;
 }
 
 
 bool Channel::setTopic(std::string topic, User & user)
 {
-    if (!this->_otopic || UserInVector(user, this->_oList) )
-    {
-        this->_topic = topic;
-        return (true);
-    }
-    return (false);
+    if (_otopic && !UserInVector(user, _oList))
+        throw ErrChanOpPrivsNeeded(_name);
+
+    _topic = topic;
+    return (true);
 }
 
 bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 {
-    if (!UserInVector(user, this->_oList))
-        return (false);
+ if (!UserInVector(user, _oList))
+        throw ErrChanOpPrivsNeeded(_name);
+
     switch (mode)
     {
         case 'i':
-        {
             _iOnly = (sign == '+');
             break;
-        }
+
         case 'o':
         {
-            try
-            {
-                User *temp = getUserByUname(parameters, _uList);
-                if (sign == '+' && !UserInVector(*temp, _oList))
-                        _oList.push_back(temp);
-                if (sign == '-' && UserInVector(*temp, _oList))
-                {
-                   remUserInVector(*temp, _oList);
-                }
-            }catch(UserNotFound &e)
-            {
-                e.what();
-                return (false);
+            User* temp = NULL;
+            try {
+                temp = getUserByUname(parameters, _uList);
+            } catch (UserNotFound& e) {
+                throw ErrNoSuchNick(parameters);
             }
+
+            if (sign == '+' && !UserInVector(*temp, _oList))
+                _oList.push_back(temp);
+
+            if (sign == '-' && UserInVector(*temp, _oList))
+                remUserInVector(*temp, _oList);
+
             break;
         }
+
         case 'k':
-        {
-            if (sign == '-')
-            {
+            if (sign == '-') {
                 _pwdNeeded = false;
-                _pwd = "";
+                _pwd.clear();
             }
-            else if (sign == '+' && !parameters.empty())
-            {
+            else if (sign == '+' && !parameters.empty()) {
                 _pwdNeeded = true;
                 _pwd = parameters;
             }
             break;
-        }
+
         case 't':
-        {
             _otopic = (sign == '+');
             break;
-        }
+
         case 'l':
         {
-            if (sign == '-')
+            if (sign == '-') {
                 _uLimit = MAX_USER_BY_CHANNEL;
-            if (sign == '+')
-            {
+            } else if (sign == '+') {
                 int tmp;
                 std::stringstream ss(parameters);
                 if (!(ss >> tmp))
-                {
-                    _uLimit = MAX_USER_BY_CHANNEL;
-                    return false;
-                }
+                    throw ErrUnknownMode("l");
                 _uLimit = tmp;
             }
             break;
         }
-        default :
-            return (false);
+
+        default:
+            throw ErrUnknownMode(std::string(1, mode));
     }
-    return (true);
 }
 
 
