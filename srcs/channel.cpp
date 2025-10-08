@@ -30,7 +30,12 @@ Channel::Channel(const Channel& other)
 Channel::Channel(std::string name)
 {
     this->_name = name;
+    this->_topic = "{ default_channel_topic }";
+    this->_otopic = false;
     this->_iOnly = false;
+    this->_pwd = "";
+    this->_pwdNeeded = false;
+    this->_uLimit = MAX_USER_BY_CHANNEL;
 }
 
 Channel::~Channel()
@@ -67,8 +72,8 @@ bool Channel::kick(User* user, User *op)
 
     if (!UserInVector(*op, _oList))
         throw ErrChanOpPrivsNeeded(_name);
-    if (!UserInVector(*target, _uList))
-        throw ErrUserNotInChannel(target->getName(), _name);
+    if (!UserInVector(*user, _uList))
+        throw ErrUserNotInChannel(user->_get_username(), _name);
     for (std::vector<User*>::iterator it = _uList.begin(); it != _uList.end(); )
     {
         if (*it == user)
@@ -103,10 +108,10 @@ bool Channel::kick(User* user, User *op)
     return deleted;
 }
 
-bool Channel::join(User* user, const std::string& parameters)
+bool Channel::join(User* user, const std::string& key)
 {
     if (UserInVector(*user, _uList))
-        return;
+        return false;
 
     if (_uLimit > 0 && _uList.size() >= static_cast<size_t>(_uLimit))
         throw ErrChannelIsFull(_name);
@@ -134,16 +139,16 @@ bool Channel::join(User* user, const std::string& parameters)
 bool Channel::invite(User* user)
 {
     if (UserInVector(*user, _uList))
-        throw ErrUserOnChannel(user->getName(), _name);
+        throw ErrUserOnChannel(user->_get_username(), _name);
 
     if (!UserInVector(*user, _invList))
         _invList.push_back(user);
     return (true);
 }
 
-bool Channel::addOpp(User *user)
+bool Channel::addOpp(User *user, bool create)
 {
-    if (!UserInVector(*user, _uList))
+    if (!UserInVector(*user, _uList) && !create)
         throw ErrNotOnChannel(_name);
     if (!UserInVector(*user, _oList))
         _oList.push_back(user);
@@ -155,7 +160,6 @@ bool Channel::setTopic(std::string topic, User & user)
 {
     if (_otopic && !UserInVector(user, _oList))
         throw ErrChanOpPrivsNeeded(_name);
-
     _topic = topic;
     return (true);
 }
@@ -221,6 +225,7 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
         default:
             throw ErrUnknownMode(std::string(1, mode));
     }
+    return true;
 }
 
 

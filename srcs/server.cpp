@@ -193,7 +193,7 @@ bool    Server::_is_supported_command(std::string command, std::vector<std::stri
 {
     bool        valid_cmd = false;
     const char  *supported_cmds_arr[] = {
-        "PASS", "NICK", "USER"
+        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE"
     };
 
     for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
@@ -272,7 +272,9 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "JOIN")
     {
         try {
+            std::cout << " COMMAND JOIN BLOCK" << std::endl;
             Channel chan = getChanbyName(params[0], _channels);
+            std::cout << " passe ici" << std::endl;
             std::string key = "";
             if (params.size() == 2)
                 key = params[1];
@@ -281,14 +283,16 @@ void    Server::_handle_message(User &user, Message &parsed)
             else
                 std::cout << user._get_username() << "didnt joined " << chan._getName() << std::endl;
             // MESSAGE AUX USERSS + gestion code erreur etc etc etc
-        }catch (ChannelNotFound &e)
+        }catch (ErrNoSuchChannel &e)
         {
+            std::cout << "catch 1" << std::endl;
             Channel chan = Channel(params[0]);
-            chan.addOpp(&user);
+            chan.addOpp(&user, true);
             _channels.push_back(chan);
         }
-        catch{ChannelException &e}
+        catch(ChannelException &e)
         {
+            std::cout << "catch 2" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -296,6 +300,7 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "KICK")
     {
         try{
+            std::cout << " COMMAND KICK BLOCK" << std::endl;
             Channel chan = getChanbyName(params[0], _channels);
             User tokick = getUserByUname_ref(params[1], _users );
             std::string comment = "";
@@ -303,33 +308,44 @@ void    Server::_handle_message(User &user, Message &parsed)
                 comment = params[3];
             if (chan.kick(&tokick, &user ))
                 std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
-        }catch(ChannelNotFound &e)
-        {
-            return ;
         }catch (UserNotFound &e)
         {
+            return ;
+        }catch(ErrNoSuchChannel &e)
+        {
+            return ;
+        }catch(ChannelException &e)
+        {
+            _send_error(user, command, e);
             return ;
         }
     }
     else if (command == "INVITE")
     {
         try{
+            std::cout << " COMMAND INVITE BLOCK" << std::endl;
             Channel chan = getChanbyName(params[0], _channels);
             User toinvite = getUserByUname_ref(params[1], _users);
             if (chan.invite(&toinvite))
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
-        }catch(ChannelNotFound &e)
+        }catch(ErrNoSuchChannel &e)
         {
             return ;
         }catch(UserNotFound & e)
         {
             return ;
+        }catch(ChannelException &e)
+        {
+            _send_error(user, command, e);
+            return ;
         }
+
     }
     else if (command == "TOPIC")
     {
         try{
-            Channel chan = getChanbyName(params[0], _channels);
+            std::cout << " COMMAND TOPIC BLOCK" << std::endl;
+            Channel  &chan = getChanbyName(params[0], _channels);
             if (params.size() == 1)
             {
                 //send topic
@@ -343,14 +359,16 @@ void    Server::_handle_message(User &user, Message &parsed)
                     // MESSAGE VALIDATION
                 }
             }
-        }catch(ChannelNotFound &e)
+        }catch(ChannelException &e)
         {
-
+            _send_error(user, command, e);
             return ;
         }
+        
     }
     else if (command == "MODE")
     {
+        std::cout << " COMMAND MODE BLOCK" << std::endl;
         std::cout << "modeee" << std::endl;
     }
     else if (!auth || user._get_username().empty() || user._get_nickname().empty())

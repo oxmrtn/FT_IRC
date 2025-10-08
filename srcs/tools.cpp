@@ -53,24 +53,15 @@ User & getUserByUname_ref(const std::string& username, std::vector<User> & list)
     throw UserNotFound();
 }
 
-const Channel & getChanbyName(const std::string & channame, std::vector<Channel> & list)
+Channel & getChanbyName(const std::string & channame, std::vector<Channel> & list)
 {
         for (size_t i = 0; i < list.size(); i++)
     {
         if (list[i]._getName() == channame)
             return list[i];
     }
-    throw ChannelNotFound();
-}
-
-const char *UserNotFound::what() const throw()
-{
-    return "error: user not found";
-}
-
-const char *ChannelNotFound::what() const throw()
-{
-    return "error: channel not found";
+    std::cout << " about to throw CHannelNotFOund" << std::endl;
+    throw ErrNoSuchChannel(channame);
 }
 
 
