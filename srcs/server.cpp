@@ -68,13 +68,13 @@ void    Server::_run(void)
             err_ret(strerror(errno));
         else if (polled > 0)
         {
-            if (_pfds[0].revents & POLLIN)
+            if (_pfds[0].revents == POLLIN)
                 if (_handle_sigquit())
                     return;
-            if (_pfds[1].revents & POLLIN)
+            if (_pfds[1].revents == POLLIN)
                 _handle_connection();
             for (size_t i = 2; i < _users.size() + 2; i++)
-                if (_pfds[i].revents & POLLIN)
+                if (_pfds[i].revents == POLLIN)
                     _process_polled(i);
         }
     }
@@ -104,6 +104,7 @@ void    Server::_handle_connection(void)
         {
             _pfds[i].fd = fd;
             _pfds[i].events = POLLIN;
+            _pfds[i].revents = -1;
             user._set_pfd(&_pfds[i]);
             _users.push_back(user);
     
