@@ -199,7 +199,7 @@ void Server::_handle_names(User &user, Auth auth, std::string command, std::vect
     {
         if (!user._get_username().empty())
             _send_response(user, "", ERR_ALREADYREGISTERED_CODE, ERR_ALREADYREGISTERED_MSG);
-        else if (!no_params)
+        else if (no_params)
             _send_response(user, "", ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
         else if (!_is_name_valid(user, name, false))
             return;
@@ -236,7 +236,7 @@ void Server::_handle_names(User &user, Auth auth, std::string command, std::vect
         _send_response(user, "", "003", yourhost);
 
         std::string myinfo = SERVER_NAME;
-        myinfo += + "1.0";
+        myinfo += + " 1.0";
         _send_response(user, myinfo, "004", "");
 
         user._set_auth(FULL);
@@ -256,7 +256,7 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
     else if (command == "CAP" || command == "QUIT" || command == "PING")
-        _send_response(user, "", command, "");
+        _send_response(user, "LS :", command, "");
     else if (auth == NOT)
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
 }
