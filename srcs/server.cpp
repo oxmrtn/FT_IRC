@@ -158,7 +158,7 @@ bool    Server::_is_supported_command(std::string command, std::vector<std::stri
 {
     bool        valid_cmd = false;
     const char  *supported_cmds_arr[] = {
-        "PASS", "NICK", "USER"
+        "PASS", "NICK", "USER", "CAP", "QUIT", "PING"
     };
 
     for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
@@ -255,6 +255,8 @@ void    Server::_handle_message(User &user, Message &parsed)
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
+    else if (command == "CAP" || command == "QUIT" || command == "PING")
+        _send_response(user, "", command, "");
     else if (auth == NOT)
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
 }
