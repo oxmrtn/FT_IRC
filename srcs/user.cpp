@@ -7,7 +7,7 @@
 sockaddr_in &User::_get_addr(void) { return _addr; }
 pollfd      *User::_get_pfd(void) const { return _pfd; }
 std::string User::_get_msg(void) const { return _msg; }
-bool        User::_get_auth(void) const { return _auth; }
+Auth        User::_get_auth(void) const { return _auth; }
 std::string User::_get_username(void) const { return _username; }
 std::string User::_get_nickname(void) const { return _nickname; }
 
@@ -24,7 +24,7 @@ void    User::_set_msg(std::string msg, bool merge)
 }
 
 void    User::_set_pfd(pollfd *pfd) { _pfd = pfd; }
-void    User::_set_auth(bool auth) { _auth = auth; }
+void    User::_set_auth(Auth auth) { _auth = auth; }
 void    User::_set_username(std::string username) { _username = username; }
 void    User::_set_nickname(std::string nickname) { _nickname = nickname; }
 
@@ -38,7 +38,7 @@ User::User(void)
     _msg = "";
     _username = "";
     _nickname = "";
-    _auth = false;
+    _auth = NOT;
 }
 
 User::User(const User &src)

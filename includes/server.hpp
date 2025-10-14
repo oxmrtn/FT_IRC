@@ -6,13 +6,14 @@
 #include <vector>
 #include <exception>
 #include "const.hpp"
+#include "auth.hpp"
 #include "user.hpp"
 #include "message.hpp"
 #include "channel.hpp"
 
-class User;
-class Message;
-class Channel;
+class   User;
+class   Message;
+class   Channel;
 
 class   Server
 {
@@ -24,23 +25,23 @@ class   Server
         std::vector<User>       _users;
         std::vector<Channel>    _channels;
         // METHODS
-        void                _init(int port, std::string pass);
-        void                _process_polled(size_t user_i);
-        bool                _handle_sigquit(void);
-        void                _handle_connection(void);
-        void                _handle_message(User &user, Message &parsed);
-        void                _handle_pass(User &user, bool auth, std::string command, std::vector<std::string> params);
-        void                _handle_names(User &user, bool auth, std::string command, std::vector<std::string> params);
-        bool                _is_supported_command(std::string command, std::vector<std::string> params);
-        void                _send_response(User &user, std::string command, std::string error_code, std::string trailing);
-        bool                _is_nickname_available(std::string nickname);
-        bool                _is_name_valid(User &user, std::string name, bool is_nick);
-        bool                _is_char_accepted(char c, bool is_nick);
-        void                _disconnect_user(User &user);
+        void                    _init(int port, std::string pass);
+        void                    _process_polled(size_t user_i);
+        bool                    _handle_sigquit(void);
+        void                    _handle_connection(void);
+        void                    _handle_message(User &user, Message &parsed);
+        void                    _handle_pass(User &user, Auth auth, std::string command, std::vector<std::string> params);
+        void                    _handle_names(User &user, Auth auth, std::string command, std::vector<std::string> params);
+        bool                    _is_supported_command(std::string command, std::vector<std::string> params);
+        void                    _send_response(User &user, std::string command, std::string error_code, std::string trailing);
+        bool                    _is_nickname_available(std::string nickname);
+        bool                    _is_name_valid(User &user, std::string name, bool is_nick);
+        bool                    _is_char_accepted(char c, bool is_nick);
+        void                    _disconnect_user(User &user);
         // GETTERS
-        User                &_get_user_from_i(size_t user_i);
-        User                _get_user_from_username(std::string username) const;
-        size_t              _get_i_from_user(User &user) const;
+        User                    &_get_user_from_i(size_t user_i);
+        User                    _get_user_from_username(std::string username) const;
+        size_t                  _get_i_from_user(User &user) const;
 
     public:
         Server(int port, std::string pass);

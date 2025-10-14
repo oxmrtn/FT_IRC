@@ -170,9 +170,9 @@ bool    Server::_is_supported_command(std::string command, std::vector<std::stri
     return true;
 }
 
-void    Server::_handle_pass(User &user, bool auth, std::string command, std::vector<std::string> params)
+void    Server::_handle_pass(User &user, Auth auth, std::string command, std::vector<std::string> params)
 {
-    if (auth)
+    if (auth != NOT)
         _send_response(user, "", ERR_ALREADYREGISTERED_CODE, ERR_ALREADYREGISTERED_MSG);
     else if (params.empty())
         _send_response(user, command, ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
@@ -182,17 +182,18 @@ void    Server::_handle_pass(User &user, bool auth, std::string command, std::ve
         _disconnect_user(user);
     }
     else
-        user._set_auth(true);
+        user._set_auth(PASS);
 }
 
-void Server::_handle_names(User &user, bool auth, std::string command, std::vector<std::string> params)
+void Server::_handle_names(User &user, Auth auth, std::string command, std::vector<std::string> params)
 {
     bool        no_params = params.empty();
     std::string name;
+
     if (!no_params)
         name = params[0];
 
-    if (!auth)
+    if (auth == NOT)
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
     else if (command == "USER")
     {
@@ -217,11 +218,34 @@ void Server::_handle_names(User &user, bool auth, std::string command, std::vect
         else
             user._set_nickname(name);
     }
+
+    std::string username = user._get_username();
+    std::string nickname = user._get_nickname();
+    if (auth == PASS && !username.empty() && !nickname.empty())
+    {
+        std::string welcome = "Welcome to the Internet Relay Network "
+            + nickname + "!" + username + "@" + SERVER_NAME;
+        _send_response(user, "", "001", welcome);
+
+        std::string yourhost = "Your host is ";
+        yourhost += SERVER_NAME;
+        yourhost += ", running version 1.0";
+        _send_response(user, "", "002", yourhost);
+
+        std::string created = "This server was created Tue Oct 14 2025";
+        _send_response(user, "", "003", yourhost);
+
+        std::string myinfo = SERVER_NAME;
+        myinfo += + "1.0";
+        _send_response(user, myinfo, "004", "");
+
+        user._set_auth(FULL);
+    }
 }
 
 void    Server::_handle_message(User &user, Message &parsed)
 {
-    bool                        auth = user._get_auth();
+    Auth                        auth = user._get_auth();
     std::string                 command = parsed._get_command();
     std::vector<std::string>    params = parsed._get_params();
 
@@ -231,7 +255,7 @@ void    Server::_handle_message(User &user, Message &parsed)
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
-    else if (!auth || user._get_username().empty() || user._get_nickname().empty())
+    else if (auth == NOT)
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
 }
 
