@@ -35,4 +35,5 @@ class Channel
         bool addOpp(User  * user, bool create);
         const std::string & _getName() const ;
         const std::string & _getTopic() const ;
+        void _send_message_to_channel(User & sender, std::string content);
 };

@@ -228,6 +228,20 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
     return true;
 }
 
+void    Channel::_send_message_to_channel(User & sender, std::string content)
+{
+    std::string to_send = sender._get_prefix() + "PRIVMSG" + _name + " :" + content;
+    for (size_t i = 0; i < _uList.size(); i++)
+    {
+        if (*(_uList[i]) != sender)
+            //send to_send to user
+    }
+    return ;
+}
+
+
+
+
 
 // ==================== GETTER ====================
 

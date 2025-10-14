@@ -13,12 +13,15 @@ class   User
         std::string _msg;
         std::string _username;
         std::string _nickname;
+        std::string _hostname;
         bool        _auth;
 
     public:
         User(void);
         User(const User &src);
         User &operator=(const User &src);
+        bool operator!=(const User &src);
+        bool operator==(const User &src);
         ~User();
         // GETTERS
         sockaddr_in &_get_addr(void);
@@ -27,6 +30,8 @@ class   User
         bool        _get_auth(void) const;
         std::string _get_username(void) const;
         std::string _get_nickname(void) const;
+        std::string _get_hostname(void) const;
+        std::string _get_prefix( void ) const;
         // SETTERS
         void        _set_pfd(pollfd *pfd);
         void        _set_msg(std::string msg, bool merge);

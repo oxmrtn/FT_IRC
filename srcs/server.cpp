@@ -193,7 +193,7 @@ bool    Server::_is_supported_command(std::string command, std::vector<std::stri
 {
     bool        valid_cmd = false;
     const char  *supported_cmds_arr[] = {
-        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE"
+        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PRIVMSG"
     };
 
     for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
@@ -307,13 +307,10 @@ void    Server::_handle_message(User &user, Message &parsed)
             if (params.size() == 3)
                 comment = params[3];
             if (chan.kick(&tokick, &user ))
+            {
                 std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
-        }catch (UserNotFound &e)
-        {
-            return ;
-        }catch(ErrNoSuchChannel &e)
-        {
-            return ;
+                // SEND MESSAGE TO USER IN CHAN
+            }
         }catch(ChannelException &e)
         {
             _send_error(user, command, e);
@@ -327,13 +324,10 @@ void    Server::_handle_message(User &user, Message &parsed)
             Channel chan = getChanbyName(params[0], _channels);
             User toinvite = getUserByUname_ref(params[1], _users);
             if (chan.invite(&toinvite))
+            {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
-        }catch(ErrNoSuchChannel &e)
-        {
-            return ;
-        }catch(UserNotFound & e)
-        {
-            return ;
+                    // MESSAGE TO USER IN CHAN IN CASE OF SUCCESS
+            }
         }catch(ChannelException &e)
         {
             _send_error(user, command, e);
@@ -370,6 +364,34 @@ void    Server::_handle_message(User &user, Message &parsed)
     {
         std::cout << " COMMAND MODE BLOCK" << std::endl;
         std::cout << "modeee" << std::endl;
+    }
+    else if (command == "PRIVMSG")
+    {
+
+        std::cout << "hihii" << std::endl;
+
+        if (message_to_channel)
+        {
+            try{
+                
+
+            }catch(ChannelException &e)
+            {
+                _send_error(user, command, e);
+                return ;
+            }
+        }
+        else if (message_to_user)
+        {
+            try{
+                send_message_to_users(user, );
+            }catch (ChannelException &e)
+            {
+                _send_error(user, command, e);
+                return ;
+            }
+         
+        }
     }
     else if (!auth || user._get_username().empty() || user._get_nickname().empty())
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
