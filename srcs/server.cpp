@@ -223,20 +223,16 @@ void Server::_handle_names(User &user, Auth auth, std::string command, std::vect
     std::string nickname = user._get_nickname();
     if (auth == PASS && !username.empty() && !nickname.empty())
     {
-        std::string welcome = "Welcome to the Internet Relay Network "
-            + nickname + "!" + username + "@" + SERVER_NAME;
+        std::string welcome = "Welcome to the Internet Relay Network " + nickname + "!" + username + "@" + SERVER_NAME;
         _send_response(user, "", "001", welcome);
 
-        std::string yourhost = "Your host is ";
-        yourhost += SERVER_NAME;
-        yourhost += ", running version 1.0";
+        std::string yourhost = "Your host is " + std::string(SERVER_NAME) + ", running version 1.0";
         _send_response(user, "", "002", yourhost);
 
         std::string created = "This server was created Tue Oct 14 2025";
         _send_response(user, "", "003", created);
 
-        std::string myinfo = SERVER_NAME;
-        myinfo += + " 1.0";
+        std::string myinfo = std::string(SERVER_NAME) + " 1.0";
         _send_response(user, myinfo, "004", "");
 
         user._set_auth(FULL);
