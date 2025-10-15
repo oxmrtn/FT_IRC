@@ -158,7 +158,7 @@ bool    Server::_is_supported_command(std::string command, std::vector<std::stri
 {
     bool        valid_cmd = false;
     const char  *supported_cmds_arr[] = {
-        "PASS", "NICK", "USER", "CAP", "QUIT", "PING"
+        "PASS", "NICK", "USER", "CAP"
     };
 
     for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
@@ -233,7 +233,7 @@ void Server::_handle_names(User &user, Auth auth, std::string command, std::vect
         _send_response(user, "", "002", yourhost);
 
         std::string created = "This server was created Tue Oct 14 2025";
-        _send_response(user, "", "003", yourhost);
+        _send_response(user, "", "003", created);
 
         std::string myinfo = SERVER_NAME;
         myinfo += + " 1.0";
@@ -255,7 +255,7 @@ void    Server::_handle_message(User &user, Message &parsed)
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
-    else if (command == "CAP" || command == "QUIT" || command == "PING")
+    else if (command == "CAP")
         _send_response(user, "LS :", command, "");
     else if (auth == NOT)
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
@@ -272,18 +272,21 @@ void    Server::_process_polled(size_t user_i)
         buf[r_bytes] = '\0';
         user._set_msg(buf, true);
         std::string msg = user._get_msg();
+        size_t pos = 0;
 
-        if (msg.empty() || !ends_with(msg, "\n"))
-            return;
-        
-        msg.erase(msg.length() - 1);
-        msg = clean_spaces(msg);
+        while ((pos = msg.find('\n')) != std::string::npos) {
+            std::string line = msg.substr(0, pos);
+            if (!line.empty() && line[line.size() - 1] == '\r')
+                line.erase(line.size() - 1);
+            line = clean_spaces(line);
+            if (!line.empty()) {
+                Message parsed(line);
+                _handle_message(user, parsed);
+            }
+            msg.erase(0, pos + 1);
+        }
 
-        Message parsed(msg);
-
-        _handle_message(user, parsed);
-
-        user._set_msg("", false);
+        user._set_msg(msg, false);
     }
     else if (r_bytes == 0)
         _disconnect_user(user);

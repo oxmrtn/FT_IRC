@@ -38,33 +38,17 @@ std::string trim_spaces(const std::string &str)
         return str;
     
     size_t start = 0;
-    while (start < str.length() && std::isspace(str[start]))
+    while (start < str.length() && str[start] == ' ')
         start++;
 
     if (start == str.length())
         return "";
     
     size_t end = str.length() - 1;
-    while (end > start && std::isspace(str[end]))
+    while (end > start && str[end] == ' ')
         end--;
     
     return str.substr(start, end - start + 1);
-}
-
-std::string normalize_spaces(const std::string &str)
-{
-    std::string cleaned;
-    cleaned.reserve(str.length());
-    
-    for (size_t i = 0; i < str.length(); i++)
-    {
-        if (std::isspace(str[i]))
-            cleaned += ' ';
-        else
-            cleaned += str[i];
-    }
-    
-    return cleaned;
 }
 
 std::string deduplicate_spaces(const std::string &str)
@@ -98,8 +82,7 @@ std::string deduplicate_spaces(const std::string &str)
 
 std::string clean_spaces(const std::string &str)
 {
-    std::string cleaned = normalize_spaces(str);
-    cleaned = deduplicate_spaces(cleaned);
+    std::string cleaned = deduplicate_spaces(str);
     cleaned = trim_spaces(cleaned);
 
     return cleaned;
