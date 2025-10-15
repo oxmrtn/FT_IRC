@@ -322,11 +322,11 @@ void    Server::_handle_message(User &user, Message &parsed)
         try{
             std::cout << " COMMAND INVITE BLOCK" << std::endl;
             Channel chan = getChanbyName(params[0], _channels);
-            User toinvite = getUserByUname_ref(params[1], _users);
+            User toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
             if (chan.invite(&toinvite))
             {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
-                    // MESSAGE TO USER IN CHAN IN CASE OF SUCCESS
+                    // MESSAGE TO USER IN CHAN IN CASE OF SUCCESS TO DO
             }
         }catch(ChannelException &e)
         {
@@ -342,7 +342,7 @@ void    Server::_handle_message(User &user, Message &parsed)
             Channel  &chan = getChanbyName(params[0], _channels);
             if (params.size() == 1)
             {
-                //send topic
+                //send topic TO DO
                 std::cout << chan._getName() << "topic's =" << chan._getTopic() << std::endl;
             }
             else
@@ -350,7 +350,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                 if (chan.setTopic(params[1], user))
                 {
                     std::cout << user._get_username() << "successfully changed topic" << std::endl;
-                    // MESSAGE VALIDATION
+                    // MESSAGE VALIDATION TO DO
                 }
             }
         }catch(ChannelException &e)
@@ -368,23 +368,24 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "PRIVMSG")
     {
 
-        std::cout << "hihii" << std::endl;
-
+        std::cout << "PRIVMSG BLOC" << std::endl;
+        bool message_to_channel = (params[0][0] == '#' ? true : false);
         if (message_to_channel)
         {
             try{
-                
-
+                Channel &chan = getChanbyName(params[0], _channels);
+                chan._send_message_to_channel(user, parsed._get_trailing());
             }catch(ChannelException &e)
             {
                 _send_error(user, command, e);
                 return ;
             }
         }
-        else if (message_to_user)
+        else
         {
             try{
-                send_message_to_users(user, );
+                User & receiver = getUserByUname_ref(params[0], _users);
+                send_message_to_users(user, receiver, parsed._get_trailing());
             }catch (ChannelException &e)
             {
                 _send_error(user, command, e);

@@ -115,3 +115,10 @@ std::pair<std::string, std::string>
     
     return std::make_pair(str.substr(0, pos), str.substr(pos + 1));
 }
+
+
+void    send_message_to_users(const User & sender, const User & receiver, std::string content)
+{
+    std::string message = sender._get_prefix() + "PRIVMSG" + receiver._get_username() + ":" + content;\
+    // SEND MESSAGE TO RECEIVER TO DO
+}

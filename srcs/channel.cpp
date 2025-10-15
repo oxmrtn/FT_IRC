@@ -234,7 +234,7 @@ void    Channel::_send_message_to_channel(User & sender, std::string content)
     for (size_t i = 0; i < _uList.size(); i++)
     {
         if (*(_uList[i]) != sender)
-            //send to_send to user
+            //send to_send to user TO DO
     }
     return ;
 }
