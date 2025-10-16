@@ -37,6 +37,5 @@ std::string deduplicate_spaces(const std::string &str);
 std::string clean_spaces(const std::string &str);
 std::pair<std::string, std::string>
             split_first(const std::string &str, char delimiter);
-void    send_message_to_users(const User & sender, const User & receiver, std::string content);
 
 extern int  g_sig;

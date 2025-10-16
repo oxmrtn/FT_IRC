@@ -234,7 +234,10 @@ void    Channel::_send_message_to_channel(User & sender, std::string content)
     for (size_t i = 0; i < _uList.size(); i++)
     {
         if (*(_uList[i]) != sender)
+        {
+            std::cout << to_send << std::endl;
             //send to_send to user TO DO
+        }
     }
     return ;
 }

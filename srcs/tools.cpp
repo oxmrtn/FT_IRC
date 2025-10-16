@@ -60,8 +60,13 @@ Channel & getChanbyName(const std::string & channame, std::vector<Channel> & lis
         if (list[i]._getName() == channame)
             return list[i];
     }
-    std::cout << " about to throw CHannelNotFOund" << std::endl;
     throw ErrNoSuchChannel(channame);
 }
 
+
+void    send_message_to_users(const User & sender, const User & receiver, std::string content)
+{
+    std::string message = sender._get_prefix() + "PRIVMSG" + receiver._get_username() + ":" + content;\
+    // SEND MESSAGE TO RECEIVER TO DO
+}
 
