@@ -10,6 +10,7 @@
 #include "message.hpp"
 #include "channel.hpp"
 #include "exception.hpp"
+#include "tools.hpp"
 
 class User;
 class Message;

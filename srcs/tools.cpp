@@ -64,9 +64,14 @@ Channel & getChanbyName(const std::string & channame, std::vector<Channel> & lis
 }
 
 
-void    send_message_to_users(const User & sender, const User & receiver, std::string content)
+void    _send_message_to_users(const User & sender, const User & receiver, std::string content)
 {
     std::string message = sender._get_prefix() + "PRIVMSG" + receiver._get_username() + ":" + content;\
+    // SEND MESSAGE TO RECEIVER TO DO
+}
+
+void _send_message_to_users(const User &receiver, std::string content)
+{
     // SEND MESSAGE TO RECEIVER TO DO
 }
 

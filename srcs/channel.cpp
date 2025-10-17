@@ -63,7 +63,7 @@ Channel & Channel::operator=(const Channel & other)
 
 
 // ==================== METHODS ====================
-bool Channel::kick(User* user, User *op)
+bool Channel::kick(User* user, User *op, std::string reason)
 {
     bool deleted = false;
 
@@ -104,7 +104,12 @@ bool Channel::kick(User* user, User *op)
         else
             ++it;
     }
-
+    if (deleted)
+    {
+        std::string to_send = op->_get_prefix() + " KICK " + _name + user->_get_nickname() + ":" + reason; 
+        _send_message_to_channel(*op, to_send, false);
+        _send_message_to_users(*user, to_send);
+    }
     return deleted;
 }
 
@@ -136,13 +141,21 @@ bool Channel::join(User* user, const std::string& key)
 }
 
 
-bool Channel::invite(User* user)
+bool Channel::invite(User* to_invite, User *user)
 {
-    if (UserInVector(*user, _uList))
-        throw ErrUserOnChannel(user->_get_username(), _name);
+    if (UserInVector(*to_invite, _uList))
+        throw ErrUserOnChannel(to_invite->_get_username(), _name);
 
-    if (!UserInVector(*user, _invList))
-        _invList.push_back(user);
+    if (!UserInVector(*to_invite, _invList))
+    {
+        _invList.push_back(to_invite);
+        std::string to_send_host = ":";
+        to_send_host += SERVER_NAME;
+        to_send_host += " 341 " + user->_get_nickname() + " " + to_invite->_get_nickname() + " " + _name;
+        std::string to_send_guest = user->_get_prefix() + " INVITE " + to_invite->_get_nickname() + " :" + _name;
+         _send_message_to_users(*to_invite, to_send_guest);
+         _send_message_to_users(*user, to_send_host);
+    }
     return (true);
 }
 
@@ -161,6 +174,10 @@ bool Channel::setTopic(std::string topic, User & user)
     if (_otopic && !UserInVector(user, _oList))
         throw ErrChanOpPrivsNeeded(_name);
     _topic = topic;
+    _topicSetter = user._get_nickname();
+    _topicTime = time(NULL);
+    std::string to_send = user._get_prefix() + " TOPIC " + _name + ":" + topic;
+    _send_message_to_channel(user, to_send, true);
     return (true);
 }
 
@@ -228,12 +245,16 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
     return true;
 }
 
-void    Channel::_send_message_to_channel(User & sender, std::string content)
+void    Channel::_send_message_to_channel(User & sender, std::string to_send, bool global)
 {
-    std::string to_send = sender._get_prefix() + "PRIVMSG" + _name + " :" + content;
     for (size_t i = 0; i < _uList.size(); i++)
     {
-        if (*(_uList[i]) != sender)
+        if (global)
+        {
+            std::cout << to_send << std::endl;
+            //send to_send to user TO DO
+        }
+        else if (*(_uList[i]) != sender)
         {
             std::cout << to_send << std::endl;
             //send to_send to user TO DO
@@ -241,8 +262,6 @@ void    Channel::_send_message_to_channel(User & sender, std::string content)
     }
     return ;
 }
-
-
 
 
 

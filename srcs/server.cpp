@@ -303,13 +303,9 @@ void    Server::_handle_message(User &user, Message &parsed)
             std::cout << " COMMAND KICK BLOCK" << std::endl;
             Channel chan = getChanbyName(params[0], _channels);
             User tokick = getUserByUname_ref(params[1], _users );
-            std::string comment = "";
-            if (params.size() == 3)
-                comment = params[3];
-            if (chan.kick(&tokick, &user ))
+            if (chan.kick(&tokick, &user, parsed._get_trailing()))
             {
                 std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
-                // SEND MESSAGE TO USER IN CHAN
             }
         }catch(ChannelException &e)
         {
@@ -323,10 +319,9 @@ void    Server::_handle_message(User &user, Message &parsed)
             std::cout << " COMMAND INVITE BLOCK" << std::endl;
             Channel chan = getChanbyName(params[0], _channels);
             User toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
-            if (chan.invite(&toinvite))
+            if (chan.invite(&toinvite, &user))
             {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
-                    // MESSAGE TO USER IN CHAN IN CASE OF SUCCESS TO DO
             }
         }catch(ChannelException &e)
         {
@@ -340,14 +335,14 @@ void    Server::_handle_message(User &user, Message &parsed)
         try{
             std::cout << " COMMAND TOPIC BLOCK" << std::endl;
             Channel  &chan = getChanbyName(params[0], _channels);
-            if (params.size() == 1)
+            if (parsed._get_trailing().size() == 0)
             {
                 //send topic TO DO
                 std::cout << chan._getName() << "topic's =" << chan._getTopic() << std::endl;
             }
             else
             {
-                if (chan.setTopic(params[1], user))
+                if (chan.setTopic(parsed._get_trailing(), user))
                 {
                     std::cout << user._get_username() << "successfully changed topic" << std::endl;
                     // MESSAGE VALIDATION TO DO
@@ -374,7 +369,8 @@ void    Server::_handle_message(User &user, Message &parsed)
         {
             try{
                 Channel &chan = getChanbyName(params[0], _channels);
-                chan._send_message_to_channel(user, parsed._get_trailing());
+                std::string to_send = user._get_prefix() + "PRIVMSG" + chan._getName() + " :" + parsed._get_trailing();
+                chan._send_message_to_channel(user, to_send, false);
             }catch(ChannelException &e)
             {
                 _send_error(user, command, e);
@@ -385,7 +381,7 @@ void    Server::_handle_message(User &user, Message &parsed)
         {
             try{
                 User & receiver = getUserByUname_ref(params[0], _users);
-                send_message_to_users(user, receiver, parsed._get_trailing());
+                _send_message_to_users(user, receiver, parsed._get_trailing());
             }catch (ChannelException &e)
             {
                 _send_error(user, command, e);
