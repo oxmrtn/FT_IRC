@@ -337,15 +337,28 @@ void    Server::_handle_message(User &user, Message &parsed)
             Channel  &chan = getChanbyName(params[0], _channels);
             if (parsed._get_trailing().size() == 0)
             {
-                //send topic TO DO
-                std::cout << chan._getName() << "topic's =" << chan._getTopic() << std::endl;
+                if (chan._getTopic().size() == 0)
+                {
+                    std::string message = ":";
+                    message += SERVER_NAME;
+                    message += " 331 " + user._get_nickname() + " " + chan._getName() + " :No topic is set";
+                    // SEND MESSAGE TO USER TO DO
+                }
+                else
+                {
+                    std::string topic = ":";
+                    topic += SERVER_NAME;
+                    std::string whotime = topic;
+                    topic += " 332 " + user._get_nickname() + " " + chan._getName() + " :" + chan._getTopic();
+                    whotime  += " 333 " + user._get_nickname() + chan._getTopicSetter() + " " + chan._getTopicTime();
+                    // SEND TOPIC && WHOTIME TO USER TO DO
+                }
             }
             else
             {
                 if (chan.setTopic(parsed._get_trailing(), user))
                 {
                     std::cout << user._get_username() << "successfully changed topic" << std::endl;
-                    // MESSAGE VALIDATION TO DO
                 }
             }
         }catch(ChannelException &e)

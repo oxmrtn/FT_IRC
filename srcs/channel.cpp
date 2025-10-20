@@ -6,8 +6,10 @@
 Channel::Channel()
 {
     this->_name = "{ default_channel_name }";
-    this->_topic = "{ default_channel_topic }";
+    this->_topic = "";
     this->_otopic = false;
+    this->_topicSetter = "none";
+    this->_topicTime = time(NULL);
     this->_iOnly = false;
     this->_pwd = "";
     this->_pwdNeeded = false;
@@ -30,7 +32,9 @@ Channel::Channel(const Channel& other)
 Channel::Channel(std::string name)
 {
     this->_name = name;
-    this->_topic = "{ default_channel_topic }";
+    this->_topic = "";
+    this->_topicSetter = "none";
+    this->_topicTime = time(NULL);
     this->_otopic = false;
     this->_iOnly = false;
     this->_pwd = "";
@@ -50,6 +54,8 @@ Channel & Channel::operator=(const Channel & other)
             _name = other._name;
             _topic = other._topic;
             _otopic = other._otopic;
+            _topicSetter = other._topicSetter;
+            _topicTime = other._topicTime;
             _pwd = other._pwd;
             _pwdNeeded = other._pwdNeeded;
             _uList = other._uList;
@@ -171,6 +177,8 @@ bool Channel::addOpp(User *user, bool create)
 
 bool Channel::setTopic(std::string topic, User & user)
 {
+    if (!UserInVector(user, _uList))
+        throw ErrUserNotInChannel(user._get_nickname(), _name);
     if (_otopic && !UserInVector(user, _oList))
         throw ErrChanOpPrivsNeeded(_name);
     _topic = topic;
@@ -178,9 +186,9 @@ bool Channel::setTopic(std::string topic, User & user)
     _topicTime = time(NULL);
     std::string to_send = user._get_prefix() + " TOPIC " + _name + ":" + topic;
     _send_message_to_channel(user, to_send, true);
-    return (true);
+    return (true); 
 }
-
+ 
 bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 {
  if (!UserInVector(user, _oList))
@@ -269,3 +277,10 @@ void    Channel::_send_message_to_channel(User & sender, std::string to_send, bo
 
 const std::string & Channel::_getName() const { return _name; };
 const std::string & Channel::_getTopic() const { return _topic; };
+const std::string & Channel::_getTopicSetter() const { return _topicSetter; };
+const std::string & Channel::_getTopicTime() const 
+{
+    std::ostringstream oss;
+    oss << _topicTime;
+    return oss.str();
+};
