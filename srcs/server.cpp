@@ -371,6 +371,7 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "MODE")
     {
         std::cout << " COMMAND MODE BLOCK" << std::endl;
+        // TO DO MODE
         std::cout << "modeee" << std::endl;
     }
     else if (command == "PRIVMSG")

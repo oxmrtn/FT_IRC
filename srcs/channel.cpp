@@ -143,6 +143,33 @@ bool Channel::join(User* user, const std::string& key)
             break;
         }
     }
+    // :Alice!alice@hostname JOIN :#general
+    //
+    std::string message_to_channel = user->_get_prefix() + " JOIN :" + _name;
+    this->_send_message_to_channel(*user, message_to_channel, true);
+    std::string message_to_user_topic = ":";
+    message_to_user_topic += SERVER_NAME;
+    std::string timestamp = message_to_user_topic;
+    std::string user_list = message_to_user_topic;
+    std::string last_message = message_to_user_topic;
+    message_to_user_topic += " 332 " + user->_get_username() + " " + _name + ":" + _topic;
+    timestamp += " 333 " + user->_get_nickname() + " " + _name + this->_getTopicSetter() + " " + this->_getTopicTime();
+    //send topic & timestamp to user TO DO
+    // build user list !  TO DO
+    std::string names;
+    for (size_t i = 0; i < _oList.size(); ++i)
+        names += "@" + _oList[i]->_get_nickname() + " ";
+    for (size_t i = 0; i < _uList.size(); ++i)
+        if (!UserInVector(*_uList[i], _oList))
+            names += _uList[i]->_get_nickname() + " ";
+    while ((user_list + names).size() > 512)
+    {
+        
+    }
+    last_message += " 306 " + user->_get_nickname() + _name + ":End of /NAMES list.";
+    //send last_message to user TO DO
+
+    // TO DO SEND MESSAGE
     return true;
 }
 
@@ -191,7 +218,8 @@ bool Channel::setTopic(std::string topic, User & user)
  
 bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 {
- if (!UserInVector(user, _oList))
+    // TO DO RESPONSE
+    if (!UserInVector(user, _oList))
         throw ErrChanOpPrivsNeeded(_name);
 
     switch (mode)
