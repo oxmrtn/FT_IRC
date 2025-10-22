@@ -66,12 +66,14 @@ Channel & getChanbyName(const std::string & channame, std::vector<Channel> & lis
 
 void    _send_message_to_users(const User & sender, const User & receiver, std::string content)
 {
-    std::string message = sender._get_prefix() + "PRIVMSG" + receiver._get_username() + ":" + content;\
-    // SEND MESSAGE TO RECEIVER TO DO
+    std::string message = sender._get_prefix() + " PRIVMSG " + receiver._get_nickname() + " :" + content;
+    _send_raw_string(receiver, message);
 }
 
-void _send_message_to_users(const User &receiver, std::string content)
-{
-    // SEND MESSAGE TO RECEIVER TO DO
+void _send_raw_string(const User &receiver, std::string msg)
+{   
+    int fd = receiver._get_pfd()->fd;
+    if (msg.size() < 2 || msg.substr(msg.size() - 2) != "\r\n")
+        msg += "\r\n";
+    send(fd, msg.c_str(), msg.size(), 0);
 }
-

@@ -342,7 +342,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                     std::string message = ":";
                     message += SERVER_NAME;
                     message += " 331 " + user._get_nickname() + " " + chan._getName() + " :No topic is set";
-                    // SEND MESSAGE TO USER TO DO
+                    _send_raw_string(user, message);
                 }
                 else
                 {
@@ -351,7 +351,8 @@ void    Server::_handle_message(User &user, Message &parsed)
                     std::string whotime = topic;
                     topic += " 332 " + user._get_nickname() + " " + chan._getName() + " :" + chan._getTopic();
                     whotime  += " 333 " + user._get_nickname() + chan._getTopicSetter() + " " + chan._getTopicTime();
-                    // SEND TOPIC && WHOTIME TO USER TO DO
+                    _send_raw_string(user, topic);
+                    _send_raw_string(user, whotime);
                 }
             }
             else

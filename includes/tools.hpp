@@ -13,7 +13,8 @@ User        &getUserByUname_ref(const std::string& username, std::vector<User> &
 Channel & getChanbyName(const std::string & channame, std::vector<Channel> & list);
 void        remUserInVector(const User &user, std::vector<User*> &users);
 void        _send_message_to_users(const User & sender, const User & receiver, std::string content);
-void        _send_message_to_users(const User & receiver, std::string content);
+void        _send_raw_string(const User &receiver, std::string msg);
+
 
 
 class UserNotFound : public std::exception
