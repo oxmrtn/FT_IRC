@@ -10,10 +10,13 @@
 #include "user.hpp"
 #include "message.hpp"
 #include "channel.hpp"
+#include "exception.hpp"
+#include "tools.hpp"
 
-class   User;
-class   Message;
-class   Channel;
+class User;
+class Message;
+class Channel;
+class ChannelException;
 
 class   Server
 {

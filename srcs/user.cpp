@@ -11,7 +11,9 @@ Auth        User::_get_auth(void) const { return _auth; }
 std::string User::_get_username(void) const { return _username; }
 std::string User::_get_nickname(void) const { return _nickname; }
 std::string User::_get_hostname(void) const { return _hostname; }
-
+std::string User::_get_prefix( void ) const {
+    return ( ":" + _nickname + "!" + _username + "@" + _hostname);
+}
 
 // ==================== SETTERS ====================
 
@@ -75,4 +77,14 @@ User  &User::operator=(const User &src)
         _auth = src._auth;
     }
     return *this;
+}
+
+bool User::operator!=(const User &src)
+{
+    return (_username != src._username);
+}
+
+bool User::operator==(const User &src)
+{
+    return (_username == src._username);
 }

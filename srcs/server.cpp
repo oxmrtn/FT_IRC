@@ -154,11 +154,51 @@ void    Server::_send_response(User &user, std::string command, std::string erro
     reponse._send(user);
 }
 
+void Server::_send_error(User &user, const std::string &command, const ChannelException &e)
+{
+    if (dynamic_cast<const ErrNoSuchNick*>(&e))
+        _send_response(user, command, ERR_NOSUCHNICK_CODE, e.what());
+    else if (dynamic_cast<const ErrNoSuchChannel*>(&e))
+        _send_response(user, command, ERR_NOSUCHCHANNEL_CODE, e.what());
+    else if (dynamic_cast<const ErrTooManyChannels*>(&e))
+        _send_response(user, command, ERR_TOOMANYCHANNELS_CODE, e.what());
+    else if (dynamic_cast<const ErrUnknownMode*>(&e))
+        _send_response(user, command, ERR_UNKNOWNMODE_CODE, e.what());
+    else if (dynamic_cast<const ErrChannelIsFull*>(&e))
+        _send_response(user, command, ERR_CHANNELISFULL_CODE, e.what());
+    else if (dynamic_cast<const ErrInviteOnlyChan*>(&e))
+        _send_response(user, command, ERR_INVITEONLYCHAN_CODE, e.what());
+    else if (dynamic_cast<const ErrBannedFromChan*>(&e))
+        _send_response(user, command, ERR_BANNEDFROMCHAN_CODE, e.what());
+    else if (dynamic_cast<const ErrBadChannelKey*>(&e))
+        _send_response(user, command, ERR_BADCHANNELKEY_CODE, e.what());
+    else if (dynamic_cast<const ErrBadChanMask*>(&e))
+        _send_response(user, command, ERR_BADCHANMASK_CODE, e.what());
+    else if (dynamic_cast<const ErrNoChanModes*>(&e))
+        _send_response(user, command, ERR_NOCHANMODES_CODE, e.what());
+    else if (dynamic_cast<const ErrUserNotInChannel*>(&e))
+        _send_response(user, command, ERR_USERNOTINCHANNEL_CODE, e.what());
+    else if (dynamic_cast<const ErrNotOnChannel*>(&e))
+        _send_response(user, command, ERR_NOTONCHANNEL_CODE, e.what());
+    else if (dynamic_cast<const ErrUserOnChannel*>(&e))
+        _send_response(user, command, ERR_USERONCHANNEL_CODE, e.what());
+    else if (dynamic_cast<const ErrChanOpPrivsNeeded*>(&e))
+        _send_response(user, command, ERR_CHANOPRIVSNEEDED_CODE, e.what());
+    else if (dynamic_cast<const ErrUsersDontMatch*>(&e))
+        _send_response(user, command, ERR_USERSDONTMATCH_CODE, e.what());
+    else if (dynamic_cast<const ErrNeedMoreParams*>(&e))
+        _send_response(user, command, ERR_NEEDMOREPARAMS_CODE, e.what());
+    else if (dynamic_cast<const ErrInvalidModeParams*>(&e))
+        _send_response(user, command, ERR_INVALIDMODEPARAMS_CODE, e.what());
+    else
+        _send_response(user, command, "400", e.what());
+}
+
 bool    Server::_is_supported_command(std::string command, std::vector<std::string> params)
 {
     bool        valid_cmd = false;
     const char  *supported_cmds_arr[] = {
-        "PASS", "NICK", "USER", "CAP"
+        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PRIVMSG", "CAP"
     };
 
     for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
@@ -247,15 +287,164 @@ void    Server::_handle_message(User &user, Message &parsed)
     std::string                 command = parsed._get_command();
     std::vector<std::string>    params = parsed._get_params();
 
+    std::cout << "command = " << command << std::endl;
+    for (size_t i = 0; i < params.size(); i++)
+        std::cout << "params " << i << " = " << params[i] << std::endl;
     if (!_is_supported_command(command, params))
         _send_response(user, command, ERR_UNKNOWNCOMMAND_CODE, ERR_UNKNOWNCOMMAND_MSG);
     else if (command == "PASS")
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
-    else if (command == "CAP")
-        _send_response(user, "LS :", command, "");
-    else if (auth == NOT)
+    else if (command == "JOIN")
+    {
+        try {
+            std::cout << " COMMAND JOIN BLOCK" << std::endl;
+            Channel chan = getChanbyName(params[0], _channels);
+            std::cout << " passe ici" << std::endl;
+            std::string key = "";
+            if (params.size() == 2)
+                key = params[1];
+            if (chan.join(&user, key))
+                std::cout << user._get_username() << " successfully joined " << chan._getName() << std::endl;
+            else
+                std::cout << user._get_username() << " didnt joined " << chan._getName() << std::endl;
+        }catch (ErrNoSuchChannel &e)
+        {
+            std::cout << "catch 1" << std::endl;
+            Channel chan = Channel(params[0]);
+            chan.addOpp(&user, true);
+            _channels.push_back(chan);
+        }
+        catch(ChannelException &e)
+        {
+            std::cout << "catch 2" << std::endl;
+            _send_error(user, command, e);
+            return ;
+        }
+    }
+    else if (command == "KICK")
+    {
+        try{
+            std::cout << " COMMAND KICK BLOCK" << std::endl;
+            Channel chan = getChanbyName(params[0], _channels);
+            User tokick = getUserByUname_ref(params[1], _users );
+            if (chan.kick(&tokick, &user, parsed._get_trailing()))
+            {
+                std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
+            }
+        }catch(ChannelException &e)
+        {
+            _send_error(user, command, e);
+            return ;
+        }
+    }
+    else if (command == "INVITE")
+    {
+        try{
+            std::cout << " COMMAND INVITE BLOCK" << std::endl;
+            Channel chan = getChanbyName(params[0], _channels);
+            User toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
+            if (chan.invite(&toinvite, &user))
+            {
+                    std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
+            }
+        }catch(ChannelException &e)
+        {
+            _send_error(user, command, e);
+            return ;
+        }
+
+    }
+    else if (command == "TOPIC")
+    {
+        try{
+            std::cout << " COMMAND TOPIC BLOCK" << std::endl;
+            Channel  &chan = getChanbyName(params[0], _channels);
+            if (parsed._get_trailing().size() == 0)
+            {
+                if (!chan._is_user_in_chan(user))
+                    throw ErrUserNotInChannel(user._get_nickname(), chan._getName());
+                if (chan._getTopic().size() == 0)
+                {
+                    std::string message = ":";
+                    message += SERVER_NAME;
+                    message += " 331 " + user._get_nickname() + " " + chan._getName() + " :No topic is set";
+                    _send_raw_string(user, message);
+                }
+                else
+                {
+                    std::string topic = ":";
+                    topic += SERVER_NAME;
+                    std::string whotime = topic;
+                    topic += " 332 " + user._get_nickname() + " " + chan._getName() + " :" + chan._getTopic();
+                    whotime  += " 333 " + user._get_nickname() + " " + chan._getTopicSetter() + " " + chan._getTopicTime();
+                    _send_raw_string(user, topic);
+                    _send_raw_string(user, whotime);
+                }
+            }
+            else
+            {
+                if (chan.setTopic(parsed._get_trailing(), user))
+                {
+                    std::cout << user._get_username() << "successfully changed topic" << std::endl;
+                }
+            }
+        }catch(ChannelException &e)
+        {
+            _send_error(user, command, e);
+            return ;
+        }
+        
+    }
+    else if (command == "MODE")
+    {
+        try {
+            std::cout << " COMMAND MODE BLOCK" << std::endl;
+            char sign = (params.size() > 1 ? params[1][0] : '*');
+            char mode = (params.size() > 1 ? params[1][1] : '*');
+            std::string args = (params.size() > 2 ? params[2] : "");
+            if (params[1].size() > 2 || (sign != '+' && sign != '-') || (std::string("iotkl").find(mode)) == std::string::npos)
+                throw ErrUnknownMode(std::string(mode, 1));
+            Channel chan = getChanbyName(params[0], _channels);
+            chan.mode(mode, user, sign, args);
+        }catch(ChannelException &e)
+        {
+            _send_error(user, command, e);
+            return ;
+        }
+    }
+    else if (command == "PRIVMSG")
+    {
+
+        std::cout << "PRIVMSG BLOC" << std::endl;
+        bool message_to_channel = (params[0][0] == '#' ? true : false);
+        if (message_to_channel)
+        {
+            try{
+                Channel &chan = getChanbyName(params[0], _channels);
+                std::string to_send = user._get_prefix() + "PRIVMSG" + chan._getName() + " :" + parsed._get_trailing();
+                chan._send_message_to_channel(user, to_send, false);
+            }catch(ChannelException &e)
+            {
+                _send_error(user, command, e);
+                return ;
+            }
+        }
+        else
+        {
+            try{
+                User & receiver = getUserByUname_ref(params[0], _users);
+                _send_message_to_users(user, receiver, parsed._get_trailing());
+            }catch (ChannelException &e)
+            {
+                _send_error(user, command, e);
+                return ;
+            }
+         
+        }
+    }
+    else if (!auth || user._get_username().empty() || user._get_nickname().empty())
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
 }
 

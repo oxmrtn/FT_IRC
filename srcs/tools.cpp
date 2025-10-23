@@ -33,7 +33,7 @@ std::string getTimestamp()
     return (std::string(buffer));
 }
 
-User *getUserByUname(const std::string& username, const std::vector<User*> & list)
+User *getUserByUname(const std::string& username, std::vector<User*> & list)
 {
     for (size_t i = 0; i < list.size(); i++)
     {
@@ -43,24 +43,37 @@ User *getUserByUname(const std::string& username, const std::vector<User*> & lis
     throw UserNotFound();
 }
 
-const Channel & getChanbyName(const std::string & channame, const std::vector<Channel> & list)
+User & getUserByUname_ref(const std::string& username, std::vector<User> & list)
+{
+    for (size_t i = 0; i < list.size(); i++)
+    {
+        if (list[i]._get_username() == username)
+            return list[i];
+    }
+    throw UserNotFound();
+}
+
+Channel & getChanbyName(const std::string & channame, std::vector<Channel> & list)
 {
         for (size_t i = 0; i < list.size(); i++)
     {
         if (list[i]._getName() == channame)
             return list[i];
     }
-    throw ChannelNotFound();
+    throw ErrNoSuchChannel(channame);
 }
 
-const char *UserNotFound::what() const throw()
+
+void    _send_message_to_users(const User & sender, const User & receiver, std::string content)
 {
-    return "error: user not found";
+    std::string message = sender._get_prefix() + " PRIVMSG " + receiver._get_nickname() + " :" + content;
+    _send_raw_string(receiver, message);
 }
 
-const char *ChannelNotFound::what() const throw()
-{
-    return "error: channel not found";
+void _send_raw_string(const User &receiver, std::string msg)
+{   
+    int fd = receiver._get_pfd()->fd;
+    if (msg.size() < 2 || msg.substr(msg.size() - 2) != "\r\n")
+        msg += "\r\n";
+    send(fd, msg.c_str(), msg.size(), 0);
 }
-
-
