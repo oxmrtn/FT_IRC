@@ -37,6 +37,7 @@ class   Server
         void                    _handle_names(User &user, Auth auth, std::string command, std::vector<std::string> params);
         bool                    _is_supported_command(std::string command, std::vector<std::string> params);
         void                    _send_response(User &user, std::string command, std::string error_code, std::string trailing);
+        void                    _send_error(User &user, const std::string &command, const ChannelException &e);
         bool                    _is_nickname_available(std::string nickname);
         bool                    _is_name_valid(User &user, std::string name, bool is_nick);
         bool                    _is_char_accepted(char c, bool is_nick);

@@ -32,6 +32,7 @@ class   User
         std::string _get_username(void) const;
         std::string _get_nickname(void) const;
         std::string _get_hostname(void) const;
+        std::string _get_prefix( void ) const;
         // SETTERS
         void        _set_pfd(pollfd *pfd);
         void        _set_msg(std::string msg, bool merge);
