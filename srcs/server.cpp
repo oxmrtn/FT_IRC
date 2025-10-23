@@ -350,7 +350,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                     topic += SERVER_NAME;
                     std::string whotime = topic;
                     topic += " 332 " + user._get_nickname() + " " + chan._getName() + " :" + chan._getTopic();
-                    whotime  += " 333 " + user._get_nickname() + chan._getTopicSetter() + " " + chan._getTopicTime();
+                    whotime  += " 333 " + user._get_nickname() + " " + chan._getTopicSetter() + " " + chan._getTopicTime();
                     _send_raw_string(user, topic);
                     _send_raw_string(user, whotime);
                 }

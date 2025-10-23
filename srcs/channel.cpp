@@ -211,6 +211,8 @@ bool Channel::addOpp(User *user, bool create)
         throw ErrNotOnChannel(_name);
     if (!UserInVector(*user, _oList))
         _oList.push_back(user);
+    if (create)
+        _uList.push_back(user);
     return true;
 }
 
