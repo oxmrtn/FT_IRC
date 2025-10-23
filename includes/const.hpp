@@ -73,3 +73,4 @@
 #define ERR_USERSDONTMATCH_CODE    "502"
 #define ERR_USERSDONTMATCH_MSG     ":Cannot change mode for other users"
 
+#define ERR_INVALIDMODEPARAMS_CODE "696" 

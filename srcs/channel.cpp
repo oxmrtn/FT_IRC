@@ -233,19 +233,21 @@ bool Channel::setTopic(std::string topic, User & user)
  
 bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 {
-    // TO DO RESPONSE
     if (!UserInVector(user, _oList))
         throw ErrChanOpPrivsNeeded(_name);
-
+    std::string response = user._get_prefix() + " MODE " + _name + " " + sign + mode;
     switch (mode)
     {
         case 'i':
             _iOnly = (sign == '+');
+            _send_message_to_channel(user, response, true);
             break;
 
         case 'o':
         {
             User* temp = NULL;
+            if (parameters.size() == 0)
+                throw ErrNeedMoreParams("MODE");
             try {
                 temp = getUserByUname(parameters, _uList);
             } catch (UserNotFound& e) {
@@ -257,7 +259,7 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 
             if (sign == '-' && UserInVector(*temp, _oList))
                 remUserInVector(*temp, _oList);
-
+            _send_message_to_channel(user, (response + " " + temp->_get_nickname()), true);
             break;
         }
 
@@ -265,27 +267,46 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
             if (sign == '-') {
                 _pwdNeeded = false;
                 _pwd.clear();
+                _send_message_to_channel(user, response, true);
             }
             else if (sign == '+' && !parameters.empty()) {
+
                 _pwdNeeded = true;
                 _pwd = parameters;
+                _send_message_to_channel(user, (response + " " + parameters), true);
+            }
+            else if (sign == '+' && parameters.empty())
+            {
+                throw ErrNeedMoreParams("k");
             }
             break;
 
         case 't':
             _otopic = (sign == '+');
+            _send_message_to_channel(user, response, true);
             break;
 
         case 'l':
         {
-            if (sign == '-') {
+            if (sign == '-')
+            {
                 _uLimit = MAX_USER_BY_CHANNEL;
-            } else if (sign == '+') {
-                int tmp;
+                _send_message_to_channel(user, response, true);
+            }
+            else if (sign == '+' && !parameters.empty())
+            {
+                long tmp;
                 std::stringstream ss(parameters);
                 if (!(ss >> tmp))
-                    throw ErrUnknownMode("l");
+                    throw ErrInvalidModeParams(_name, "l", parameters);
+                if (tmp < 0)
+                    throw ErrInvalidModeParams(_name, "l", parameters);
                 _uLimit = tmp;
+                _send_message_to_channel(user, (response + " " + parameters), true);
+            }
+            else if (sign == '+' && parameters.empty())
+            {
+                throw ErrNeedMoreParams("l");
             }
             break;
         }

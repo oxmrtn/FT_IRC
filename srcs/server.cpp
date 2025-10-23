@@ -185,6 +185,10 @@ void Server::_send_error(User &user, const std::string &command, const ChannelEx
         _send_response(user, command, ERR_CHANOPRIVSNEEDED_CODE, e.what());
     else if (dynamic_cast<const ErrUsersDontMatch*>(&e))
         _send_response(user, command, ERR_USERSDONTMATCH_CODE, e.what());
+    else if (dynamic_cast<const ErrNeedMoreParams*>(&e))
+        _send_response(user, command, ERR_NEEDMOREPARAMS_CODE, e.what());
+    else if (dynamic_cast<const ErrInvalidModeParams*>(&e))
+        _send_response(user, command, ERR_INVALIDMODEPARAMS_CODE, e.what());
     else
         _send_response(user, command, "400", e.what());
 }
@@ -279,10 +283,9 @@ void    Server::_handle_message(User &user, Message &parsed)
             if (params.size() == 2)
                 key = params[1];
             if (chan.join(&user, key))
-                std::cout << user._get_username() << "successfully joined " << chan._getName() << std::endl;
+                std::cout << user._get_username() << " successfully joined " << chan._getName() << std::endl;
             else
-                std::cout << user._get_username() << "didnt joined " << chan._getName() << std::endl;
-            // MESSAGE AUX USERSS + gestion code erreur etc etc etc
+                std::cout << user._get_username() << " didnt joined " << chan._getName() << std::endl;
         }catch (ErrNoSuchChannel &e)
         {
             std::cout << "catch 1" << std::endl;
@@ -373,9 +376,20 @@ void    Server::_handle_message(User &user, Message &parsed)
     }
     else if (command == "MODE")
     {
-        std::cout << " COMMAND MODE BLOCK" << std::endl;
-        // TO DO MODE 
-        std::cout << "modeee" << std::endl;
+        try {
+            std::cout << " COMMAND MODE BLOCK" << std::endl;
+            char sign = (params.size() > 1 ? params[1][0] : '*');
+            char mode = (params.size() > 1 ? params[1][1] : '*');
+            std::string args = (params.size() > 2 ? params[2] : "");
+            if (params[1].size() > 2 || (sign != '+' && sign != '-') || (std::string("iotkl").find(mode)) == std::string::npos)
+                throw ErrUnknownMode(std::string(mode, 1));
+            Channel chan = getChanbyName(params[0], _channels);
+            chan.mode(mode, user, sign, args);
+        }catch(ChannelException &e)
+        {
+            _send_error(user, command, e);
+            return ;
+        }
     }
     else if (command == "PRIVMSG")
     {
