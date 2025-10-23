@@ -226,7 +226,7 @@ bool Channel::setTopic(std::string topic, User & user)
     _topic = topic;
     _topicSetter = user._get_nickname();
     _topicTime = time(NULL);
-    std::string to_send = user._get_prefix() + " TOPIC " + _name + ":" + topic;
+    std::string to_send = user._get_prefix() + " TOPIC " + _name + " :" + topic;
     _send_message_to_channel(user, to_send, true);
     return (true); 
 }
@@ -327,3 +327,8 @@ std::string Channel::_getTopicTime() const
     oss << _topicTime;
     return oss.str();
 };
+
+bool Channel::_is_user_in_chan(const User &user)
+{
+    return (UserInVector(user, _uList));
+}

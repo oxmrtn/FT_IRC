@@ -41,6 +41,7 @@ User::User(void)
     _msg = "";
     _username = "";
     _nickname = "";
+    _hostname = "localhost";
     _auth = false;
 }
 
@@ -51,6 +52,7 @@ User::User(const User &src)
     _msg = src._msg;
     _username = src._username;
     _nickname = src._nickname;
+    _hostname = src._hostname;
     _auth = src._auth;
 }
 

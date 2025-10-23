@@ -38,6 +38,7 @@ class Channel
         const std::string & _getName() const ;
         const std::string & _getTopic() const ;
         const std::string & _getTopicSetter() const ;
+        bool _is_user_in_chan(const User &user);
         std::string  _getTopicTime() const ;
         void _send_message_to_channel(User & sender, std::string content, bool global);
 };

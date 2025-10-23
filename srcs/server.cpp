@@ -337,6 +337,8 @@ void    Server::_handle_message(User &user, Message &parsed)
             Channel  &chan = getChanbyName(params[0], _channels);
             if (parsed._get_trailing().size() == 0)
             {
+                if (!chan._is_user_in_chan(user))
+                    throw ErrUserNotInChannel(user._get_nickname(), chan._getName());
                 if (chan._getTopic().size() == 0)
                 {
                     std::string message = ":";
@@ -372,7 +374,7 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "MODE")
     {
         std::cout << " COMMAND MODE BLOCK" << std::endl;
-        // TO DO MODE
+        // TO DO MODE 
         std::cout << "modeee" << std::endl;
     }
     else if (command == "PRIVMSG")
