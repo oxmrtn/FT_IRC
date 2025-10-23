@@ -197,6 +197,7 @@ void Server::_handle_names(User &user, Auth auth, std::string command, std::vect
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
     else if (command == "USER")
     {
+        std::string hostname = params[1];
         if (!user._get_username().empty())
             _send_response(user, "", ERR_ALREADYREGISTERED_CODE, ERR_ALREADYREGISTERED_MSG);
         else if (no_params)
@@ -204,6 +205,7 @@ void Server::_handle_names(User &user, Auth auth, std::string command, std::vect
         else if (!_is_name_valid(user, name, false))
             return;
         user._set_username(name);
+        user._set_hostname(hostname);
     }
     else if (command == "NICK")
     {

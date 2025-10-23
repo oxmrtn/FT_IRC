@@ -14,6 +14,7 @@ class   User
         std::string _msg;
         std::string _username;
         std::string _nickname;
+        std::string _hostname;
         Auth    _auth;
 
     public:
@@ -28,10 +29,12 @@ class   User
         Auth        _get_auth(void) const;
         std::string _get_username(void) const;
         std::string _get_nickname(void) const;
+        std::string _get_hostname(void) const;
         // SETTERS
         void        _set_pfd(pollfd *pfd);
         void        _set_msg(std::string msg, bool merge);
         void        _set_auth(Auth auth);
         void        _set_username(std::string username);
         void        _set_nickname(std::string nickname);
+        void        _set_hostname(std::string hostname);
 };

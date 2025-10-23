@@ -10,6 +10,7 @@ std::string User::_get_msg(void) const { return _msg; }
 Auth        User::_get_auth(void) const { return _auth; }
 std::string User::_get_username(void) const { return _username; }
 std::string User::_get_nickname(void) const { return _nickname; }
+std::string User::_get_hostname(void) const { return _hostname; }
 
 
 // ==================== SETTERS ====================
@@ -27,6 +28,7 @@ void    User::_set_pfd(pollfd *pfd) { _pfd = pfd; }
 void    User::_set_auth(Auth auth) { _auth = auth; }
 void    User::_set_username(std::string username) { _username = username; }
 void    User::_set_nickname(std::string nickname) { _nickname = nickname; }
+void    User::_set_hostname(std::string hostname) { _hostname = hostname; }
 
 
 // ==================== CONSTRUCTORS ====================
@@ -38,6 +40,7 @@ User::User(void)
     _msg = "";
     _username = "";
     _nickname = "";
+    _hostname = "";
     _auth = NOT;
 }
 
@@ -48,6 +51,7 @@ User::User(const User &src)
     _msg = src._msg;
     _username = src._username;
     _nickname = src._nickname;
+    _hostname = src._hostname;
     _auth = src._auth;
 }
 
@@ -67,6 +71,7 @@ User  &User::operator=(const User &src)
         _msg = src._msg;
         _username = src._username;
         _nickname = src._nickname;
+        _hostname = src._hostname;
         _auth = src._auth;
     }
     return *this;
