@@ -283,6 +283,7 @@ void    Server::_process_polled(size_t user_i)
             }
             msg.erase(0, pos + 1);
         }
+
         if (_pfds[user_i].fd != -1)
             user._set_msg(msg, false);
     }
