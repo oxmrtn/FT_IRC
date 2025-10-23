@@ -58,9 +58,31 @@ std::string Message::_compose(void) const
 
 void Message::_send(User &target)
 {
-    int fd = target._get_pfd()->fd;
+    int         fd = target._get_pfd()->fd;
     std::string msg = _compose();
-    send(fd, msg.c_str(), msg.length(), 0);
+    size_t      msg_len = msg.length();
+    size_t      start = 0;
+    size_t      end = 0;
+    std::string pre = ":" + _prefix + " ";
+    size_t      pre_len = pre.length();
+
+    while (end != std::string::npos)
+    {
+        std::string to_send;
+        size_t      pre_reserved = start != 0 ? pre_len : 0;
+
+        if (msg_len - (start + pre_reserved) > 512)
+            end = 510 - pre_reserved;
+        else
+            end = std::string::npos;
+        to_send = msg.substr(start, end);
+        if (pre_reserved != 0)
+            to_send = pre + to_send;
+        if (!ends_with(to_send, "\r\n"))
+            to_send += "\r\n";
+        send(fd, to_send.c_str(), to_send.length(), 0);
+        start += 510 - pre_reserved;
+    }
 }
 
 
