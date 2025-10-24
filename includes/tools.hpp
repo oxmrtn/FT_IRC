@@ -14,9 +14,3 @@ Channel & getChanbyName(const std::string & channame, std::vector<Channel> & lis
 void        remUserInVector(const User &user, std::vector<User*> &users);
 void        _send_message_to_users(const User & sender, const User & receiver, std::string content);
 void        _send_raw_string(const User &receiver, std::string msg);
-
-
-
-class UserNotFound : public std::exception
-    {   public: virtual const char *what() const throw(){return "error: user not found";}};
-

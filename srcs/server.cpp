@@ -7,6 +7,7 @@
 
 void Server::_init(int port, std::string pass)
 {
+    _users.reserve(CON_USER_LIMIT);
     _pfds[0].fd = STDIN_FILENO;
     _pfds[0].events = POLLIN;
 
@@ -190,6 +191,8 @@ void Server::_send_error(User &user, const std::string &command, const ChannelEx
         _send_response(user, command, ERR_NEEDMOREPARAMS_CODE, e.what());
     else if (dynamic_cast<const ErrInvalidModeParams*>(&e))
         _send_response(user, command, ERR_INVALIDMODEPARAMS_CODE, e.what());
+    else if (dynamic_cast<const ErrUserNotFound*>(&e))
+        _send_response(user, command, ERR_NOSUCHNICK_CODE, e.what());
     else
         _send_response(user, command, "400", e.what());
 }
@@ -311,14 +314,14 @@ void    Server::_handle_message(User &user, Message &parsed)
                 std::cout << user._get_username() << " didnt joined " << chan._getName() << std::endl;
         }catch (ErrNoSuchChannel &e)
         {
-            std::cout << "catch 1" << std::endl;
-            Channel chan = Channel(params[0]);
+            std::cout << " Exception catch in JOIN -- Creating a channel" << std::endl;
+            Channel chan(params[0]);
             chan.addOpp(&user, true);
             _channels.push_back(chan);
         }
         catch(ChannelException &e)
         {
-            std::cout << "catch 2" << std::endl;
+            std::cout << " Exception catch in JOIN" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -327,14 +330,16 @@ void    Server::_handle_message(User &user, Message &parsed)
     {
         try{
             std::cout << " COMMAND KICK BLOCK" << std::endl;
-            Channel chan = getChanbyName(params[0], _channels);
-            User tokick = getUserByUname_ref(params[1], _users );
+            Channel & chan = getChanbyName(params[0], _channels);
+            User & tokick = getUserByUname_ref(params[1], _users );
             if (chan.kick(&tokick, &user, parsed._get_trailing()))
             {
                 std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
             }
-        }catch(ChannelException &e)
+        }
+        catch(ChannelException &e)
         {
+            std::cout << " Exception catch in KICK" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -344,17 +349,17 @@ void    Server::_handle_message(User &user, Message &parsed)
         try{
             std::cout << " COMMAND INVITE BLOCK" << std::endl;
             Channel chan = getChanbyName(params[0], _channels);
-            User toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
+            User & toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
             if (chan.invite(&toinvite, &user))
             {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
             }
         }catch(ChannelException &e)
         {
+            std::cout << " Exception catch in INVITE" << std::endl;
             _send_error(user, command, e);
             return ;
         }
-
     }
     else if (command == "TOPIC")
     {
@@ -392,6 +397,7 @@ void    Server::_handle_message(User &user, Message &parsed)
             }
         }catch(ChannelException &e)
         {
+            std::cout << " Exception catch in TOPIC" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -406,10 +412,11 @@ void    Server::_handle_message(User &user, Message &parsed)
             std::string args = (params.size() > 2 ? params[2] : "");
             if (params[1].size() > 2 || (sign != '+' && sign != '-') || (std::string("iotkl").find(mode)) == std::string::npos)
                 throw ErrUnknownMode(std::string(mode, 1));
-            Channel chan = getChanbyName(params[0], _channels);
+            Channel & chan = getChanbyName(params[0], _channels);
             chan.mode(mode, user, sign, args);
         }catch(ChannelException &e)
         {
+            std::cout << " Exception catch in MODE" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -427,6 +434,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                 chan._send_message_to_channel(user, to_send, false);
             }catch(ChannelException &e)
             {
+                std::cout << " Exception catch in PRIVMSG" << std::endl;
                 _send_error(user, command, e);
                 return ;
             }
@@ -560,7 +568,7 @@ User    &Server::_get_user_from_i(size_t user_i)
     for (size_t i = 0; i < _users.size(); i++)
         if (_users[i]._get_pfd() == &_pfds[user_i])
             return _users[i];
-    throw UserNotFoundError();
+    throw ErrUserNotFound("null");
 }
 
 size_t  Server::_get_i_from_user(User &user) const
@@ -568,7 +576,7 @@ size_t  Server::_get_i_from_user(User &user) const
     for (size_t i = 2; i < _users.size() + 2; i++)
         if (user._get_pfd() == &_pfds[i])
             return i;
-    throw UserNotFoundError();
+    throw ErrUserNotFound(user._get_nickname());
 }
 
 
@@ -636,7 +644,3 @@ const char *Server::SocketListenError::what() const throw()
     return "failed to enable listening";
 }
 
-const char *Server::UserNotFoundError::what() const throw()
-{
-    return "user not found";
-}

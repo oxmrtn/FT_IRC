@@ -31,6 +31,7 @@ class ErrUserOnChannel    : public ChannelException { public: ErrUserOnChannel(c
 class ErrChanOpPrivsNeeded: public ChannelException { public: ErrChanOpPrivsNeeded(const std::string& chan) : ChannelException(chan + " :You're not channel operator") {} };
 class ErrNeedMoreParams   : public ChannelException { public: ErrNeedMoreParams(const std::string& mode) : ChannelException(mode + " :Not enough parameters") {}};
 class ErrInvalidModeParams: public ChannelException { public: ErrInvalidModeParams(const std::string& chan, const std::string& mode, const std::string& param) : ChannelException(chan + " " + mode + " " + param + " :Invalid mode parameter") {}};
+class ErrUserNotFound     : public ChannelException { public: ErrUserNotFound(const std::string& user) : ChannelException(user + " not found "){}};
 
 class ErrUsersDontMatch   : public ChannelException { public: ErrUsersDontMatch() : ChannelException(":Cannot change mode for other users") {} };
 
