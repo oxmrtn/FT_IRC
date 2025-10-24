@@ -35,6 +35,7 @@ class   Server
         void                    _handle_message(User &user, Message &parsed);
         void                    _handle_pass(User &user, Auth auth, std::string command, std::vector<std::string> params);
         void                    _handle_names(User &user, Auth auth, std::string command, std::vector<std::string> params);
+        void                    _handle_ping(User &user, std::string trailing);
         bool                    _is_supported_command(std::string command, std::vector<std::string> params);
         void                    _send_response(User &user, std::string command, std::string error_code, std::string trailing);
         void                    _send_error(User &user, const std::string &command, const ChannelException &e);

@@ -198,7 +198,7 @@ bool    Server::_is_supported_command(std::string command, std::vector<std::stri
 {
     bool        valid_cmd = false;
     const char  *supported_cmds_arr[] = {
-        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PRIVMSG", "CAP"
+        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PRIVMSG", "CAP", "PING"
     };
 
     for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
@@ -281,10 +281,17 @@ void Server::_handle_names(User &user, Auth auth, std::string command, std::vect
     }
 }
 
+void    Server::_handle_ping(User &user, std::string trailing)
+{
+    std::string message = "PONG :" + trailing + "\r\n";
+    _send_raw_string(user, message);
+}
+
 void    Server::_handle_message(User &user, Message &parsed)
 {
     Auth                        auth = user._get_auth();
     std::string                 command = parsed._get_command();
+    std::string                 trailing = parsed._get_trailing();
     std::vector<std::string>    params = parsed._get_params();
 
     std::cout << "command = " << command << std::endl;
@@ -296,6 +303,8 @@ void    Server::_handle_message(User &user, Message &parsed)
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
         _handle_names(user, auth, command, params);
+    else if (command == "PING")
+        _handle_ping(user, trailing);
     else if (command == "JOIN")
     {
         try {
@@ -396,8 +405,8 @@ void    Server::_handle_message(User &user, Message &parsed)
             return ;
         }
         
-    }
-    else if (command == "MODE")
+    } 
+    else if (command == "MODE" && !params.empty() && params[0][0] == '#')
     {
         try {
             std::cout << " COMMAND MODE BLOCK" << std::endl;
