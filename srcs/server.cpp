@@ -309,7 +309,7 @@ void    Server::_handle_message(User &user, Message &parsed)
     {
         try {
             std::cout << " COMMAND JOIN BLOCK" << std::endl;
-            Channel chan = getChanbyName(params[0], _channels);
+            Channel &chan = getChanbyName(params[0], _channels);
             std::cout << " passe ici" << std::endl;
             std::string key = "";
             if (params.size() == 2)
@@ -425,14 +425,13 @@ void    Server::_handle_message(User &user, Message &parsed)
     }
     else if (command == "PRIVMSG")
     {
-
         std::cout << "PRIVMSG BLOC" << std::endl;
         bool message_to_channel = (params[0][0] == '#' ? true : false);
         if (message_to_channel)
         {
             try{
                 Channel &chan = getChanbyName(params[0], _channels);
-                std::string to_send = user._get_prefix() + "PRIVMSG" + chan._getName() + " :" + parsed._get_trailing();
+                std::string to_send = user._get_prefix() + " PRIVMSG " + chan._getName() + " :" + parsed._get_trailing();
                 chan._send_message_to_channel(user, to_send, false);
             }catch(ChannelException &e)
             {
