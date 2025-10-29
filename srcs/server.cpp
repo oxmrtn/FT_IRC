@@ -319,8 +319,8 @@ void    Server::_handle_message(User &user, Message &parsed)
             Channel &chan = getChanbyName(params[0], _channels);
             std::cout << " passe ici" << std::endl;
             std::string key = "";
-            if (params.size() == 2)
-                key = params[1];
+            if (params.size() == 3)
+                key = params[2];
             if (chan.join(&user, key))
                 std::cout << user._get_username() << " successfully joined " << chan._getName() << std::endl;
             else
@@ -332,19 +332,30 @@ void    Server::_handle_message(User &user, Message &parsed)
             chan.addOpp(&user, true);
             _channels.push_back(chan);
         }
+//         catch (ErrChannelIsFull &e)
+//         {
+// // i am not handling this
+//         }
+//         catch (ErrInviteOnlyChan &e)
+//         {
+// // i am not handling this
+//         }
+//         catch (ErrBadChannelKey &e)
+//         {
+// // i am not handling this
+//         }
         catch(ChannelException &e)
         {
             std::cout << " Exception catch in JOIN" << std::endl;
             _send_error(user, command, e);
-            return ;
         }
     }
     else if (command == "KICK")
     {
         try{
             std::cout << " COMMAND KICK BLOCK" << std::endl;
-            Channel & chan = getChanbyName(params[0], _channels);
-            User & tokick = getUserByUname_ref(params[1], _users );
+            Channel &chan = getChanbyName(params[0], _channels);
+            User tokick = getUserByUname_ref(params[1], _users );
             if (chan.kick(&tokick, &user, parsed._get_trailing()))
             {
                 std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
@@ -361,8 +372,13 @@ void    Server::_handle_message(User &user, Message &parsed)
     {
         try{
             std::cout << " COMMAND INVITE BLOCK" << std::endl;
+<<<<<<< HEAD
             Channel chan = getChanbyName(params[0], _channels);
             User & toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
+=======
+            Channel &chan = getChanbyName(params[0], _channels);
+            User toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
+>>>>>>> 349a3cb567e1f67c7a536845667844d23636c253
             if (chan.invite(&toinvite, &user))
             {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
@@ -407,6 +423,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                 {
                     std::cout << user._get_username() << "successfully changed topic" << std::endl;
                 }
+// operator check error not catched
             }
         }catch(ChannelException &e)
         {
@@ -425,7 +442,7 @@ void    Server::_handle_message(User &user, Message &parsed)
             std::string args = (params.size() > 2 ? params[2] : "");
             if (params[1].size() > 2 || (sign != '+' && sign != '-') || (std::string("iotkl").find(mode)) == std::string::npos)
                 throw ErrUnknownMode(std::string(mode, 1));
-            Channel & chan = getChanbyName(params[0], _channels);
+            Channel &chan = getChanbyName(params[0], _channels);
             chan.mode(mode, user, sign, args);
         }catch(ChannelException &e)
         {
