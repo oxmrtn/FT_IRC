@@ -62,6 +62,4 @@ class   Server
         {   public: virtual const char *what() const throw(); };
     class   SocketListenError   : public std::exception
         {   public: virtual const char *what() const throw(); };
-    class   UserNotFoundError   : public std::exception
-        {   public: virtual const char *what() const throw(); };
 };

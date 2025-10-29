@@ -20,6 +20,8 @@ Channel::Channel(const Channel& other)
     : _name(other._name),
       _topic(other._topic),
       _otopic(other._otopic),
+      _topicSetter(other._topicSetter),
+      _topicTime(other._topicTime),
       _pwd(other._pwd),
       _pwdNeeded(other._pwdNeeded),
       _uList(other._uList),
@@ -250,7 +252,7 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
                 throw ErrNeedMoreParams("MODE");
             try {
                 temp = getUserByUname(parameters, _uList);
-            } catch (UserNotFound& e) {
+            } catch (ErrUserNotFound& e) {
                 throw ErrNoSuchNick(parameters);
             }
 
@@ -319,6 +321,12 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 
 void    Channel::_send_message_to_channel(User & sender, std::string to_send, bool global)
 {
+    std::cout << " IN SEND TO CHANNEL " << std::endl;
+    std::cout << " IN CHANNEl " << _name << " There are " << _uList.size() << " user registered" << std::endl;
+    for (size_t i = 0; i < _uList.size(); i++)
+    {
+        std::cout << " User " << i << " : " << _uList[i]->_get_nickname() << std::endl;
+    }
     for (size_t i = 0; i < _uList.size(); i++)
     {
         if (global)
