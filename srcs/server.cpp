@@ -305,6 +305,10 @@ void    Server::_handle_message(User &user, Message &parsed)
         _handle_names(user, auth, command, params);
     else if (command == "PING")
         _handle_ping(user, trailing);
+    else if (command == "CAP")
+        _send_response(user, "LS :", command, "");
+    else if (auth == NOT)
+        _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
     else if (command == "JOIN")
     {
         try {
@@ -452,8 +456,6 @@ void    Server::_handle_message(User &user, Message &parsed)
          
         }
     }
-    else if (!auth || user._get_username().empty() || user._get_nickname().empty())
-        _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
 }
 
 void    Server::_process_polled(size_t user_i)
