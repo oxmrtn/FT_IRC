@@ -321,12 +321,6 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 
 void    Channel::_send_message_to_channel(User & sender, std::string to_send, bool global)
 {
-    std::cout << " IN SEND TO CHANNEL " << std::endl;
-    std::cout << " IN CHANNEl " << _name << " There are " << _uList.size() << " user registered" << std::endl;
-    for (size_t i = 0; i < _uList.size(); i++)
-    {
-        std::cout << " User " << i << " : " << _uList[i]->_get_nickname() << std::endl;
-    }
     for (size_t i = 0; i < _uList.size(); i++)
     {
         if (global)
