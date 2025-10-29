@@ -15,7 +15,6 @@ class Message
         // METHODS
         void                        _default_init(void);
         void                        _parse(const std::string &raw);
-        std::string                 _compose(void) const;
 
     public:
         Message(const std::string &msg);
@@ -29,6 +28,7 @@ class Message
         // METHODS
         void                            _send(User &dest);
         // GETTERS
+        std::string                     _compose(void) const;
         const std::vector<std::string>  &_get_params(void) const;
         const std::string               &_get_prefix(void) const;
         const std::string               &_get_command(void) const;

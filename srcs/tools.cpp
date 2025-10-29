@@ -63,7 +63,6 @@ Channel & getChanbyName(const std::string & channame, std::vector<Channel> & lis
     throw ErrNoSuchChannel(channame);
 }
 
-
 void    _send_message_to_users(const User & sender, const User & receiver, std::string content)
 {
     std::string message = sender._get_prefix() + " PRIVMSG " + receiver._get_nickname() + " :" + content;

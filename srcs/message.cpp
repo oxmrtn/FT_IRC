@@ -47,7 +47,7 @@ std::string Message::_compose(void) const
     if (!_prefix.empty())
         msg += ":" + _prefix + " ";
     msg += _command;
-    for (size_t i = 0; i < _params.size(); ++i)
+    for (size_t i = 0; i < _params.size(); ++i) 
         msg += " " + _params[i];
     if (!_trailing.empty())
         msg += " :" + _trailing;
