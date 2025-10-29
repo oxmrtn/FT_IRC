@@ -372,17 +372,12 @@ void    Server::_handle_message(User &user, Message &parsed)
     {
         try{
             std::cout << " COMMAND INVITE BLOCK" << std::endl;
-<<<<<<< HEAD
             Channel chan = getChanbyName(params[0], _channels);
             User & toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
-=======
-            Channel &chan = getChanbyName(params[0], _channels);
-            User toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
->>>>>>> 349a3cb567e1f67c7a536845667844d23636c253
             if (chan.invite(&toinvite, &user))
             {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
-            }
+            } 
         }catch(ChannelException &e)
         {
             std::cout << " Exception catch in INVITE" << std::endl;
