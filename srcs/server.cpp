@@ -156,111 +156,105 @@ void    Server::_send_response(User &user, std::string command, std::string erro
     std::cout << "response = " << reponse._compose() << std::endl;
 }
 
-void    Server::_send_response(User &user, std::string command, std::string error_code, std::vector<std::string> response_params, std::string trailing)
+void    Server::_send_response(User & user,  std::string error_code, std::vector<std::string> response_params, std::string trailing)
 {
     std::string nickname = user._get_nickname();
 
     if (nickname.empty())
         response_params.insert(response_params.begin(), "*");
-    else
-        response_params.insert(response_params.begin(), nickname);   
-    if (!command.empty())
-        response_params.push_back(command);
     Message reponse(SERVER_NAME, error_code, response_params, trailing);
     reponse._send(user);
     std::cout << "response = " << reponse._compose() << std::endl;
 }
 
-void Server::_send_error(User &user, const std::string &command, const ChannelException &e)
-{
-    if (dynamic_cast<const ErrNoSuchNick*>(&e))
-        _send_response(user, command, ERR_NOSUCHNICK_CODE, e.what());
-    else if (dynamic_cast<const ErrNoSuchChannel*>(&e))
-        _send_response(user, command, ERR_NOSUCHCHANNEL_CODE, e.what());
-    else if (dynamic_cast<const ErrTooManyChannels*>(&e))
-        _send_response(user, command, ERR_TOOMANYCHANNELS_CODE, e.what());
-    else if (dynamic_cast<const ErrUnknownMode*>(&e))
-        _send_response(user, command, ERR_UNKNOWNMODE_CODE, e.what());
-    else if (dynamic_cast<const ErrChannelIsFull*>(&e))
-        _send_response(user, command, ERR_CHANNELISFULL_CODE, e.what());
-    else if (dynamic_cast<const ErrInviteOnlyChan*>(&e))
-        _send_response(user, command, ERR_INVITEONLYCHAN_CODE, e.what());
-    else if (dynamic_cast<const ErrBannedFromChan*>(&e))
-        _send_response(user, command, ERR_BANNEDFROMCHAN_CODE, e.what());
-    else if (dynamic_cast<const ErrBadChannelKey*>(&e))
-        _send_response(user, command, ERR_BADCHANNELKEY_CODE, e.what());
-    else if (dynamic_cast<const ErrBadChanMask*>(&e))
-        _send_response(user, command, ERR_BADCHANMASK_CODE, e.what());
-    else if (dynamic_cast<const ErrNoChanModes*>(&e))
-        _send_response(user, command, ERR_NOCHANMODES_CODE, e.what());
-    else if (dynamic_cast<const ErrUserNotInChannel*>(&e))
-        _send_response(user, command, ERR_USERNOTINCHANNEL_CODE, e.what());
-    else if (dynamic_cast<const ErrNotOnChannel*>(&e))
-        _send_response(user, command, ERR_NOTONCHANNEL_CODE, e.what());
-    else if (dynamic_cast<const ErrUserOnChannel*>(&e))
-        _send_response(user, command, ERR_USERONCHANNEL_CODE, e.what());
-    else if (dynamic_cast<const ErrChanOpPrivsNeeded*>(&e))
-        _send_response(user, command, ERR_CHANOPRIVSNEEDED_CODE, e.what());
-    else if (dynamic_cast<const ErrUsersDontMatch*>(&e))
-        _send_response(user, command, ERR_USERSDONTMATCH_CODE, e.what());
-    else if (dynamic_cast<const ErrNeedMoreParams*>(&e))
-        _send_response(user, command, ERR_NEEDMOREPARAMS_CODE, e.what());
-    else if (dynamic_cast<const ErrInvalidModeParams*>(&e))
-        _send_response(user, command, ERR_INVALIDMODEPARAMS_CODE, e.what());
-    else if (dynamic_cast<const ErrUserNotFound*>(&e))
-        _send_response(user, command, ERR_NOSUCHNICK_CODE, e.what());
-    else
-        _send_response(user, command, "400", e.what());
-}
-
 // void Server::_send_error(User &user, const std::string &command, const ChannelException &e)
 // {
-//     std::string code;
-//     std::vector<std::string> params;
-//     std::string target = e.getTarget();
-
-//     // --- 1. Associer le bon code à chaque exception ---
-//     if      (dynamic_cast<const ErrNoSuchNick*>(&e))        code = ERR_NOSUCHNICK_CODE;
-//     else if (dynamic_cast<const ErrNoSuchChannel*>(&e))     code = ERR_NOSUCHCHANNEL_CODE;
-//     else if (dynamic_cast<const ErrTooManyChannels*>(&e))   code = ERR_TOOMANYCHANNELS_CODE;
-//     else if (dynamic_cast<const ErrUnknownMode*>(&e))       code = ERR_UNKNOWNMODE_CODE;
-//     else if (dynamic_cast<const ErrChannelIsFull*>(&e))     code = ERR_CHANNELISFULL_CODE;
-//     else if (dynamic_cast<const ErrInviteOnlyChan*>(&e))    code = ERR_INVITEONLYCHAN_CODE;
-//     else if (dynamic_cast<const ErrBannedFromChan*>(&e))    code = ERR_BANNEDFROMCHAN_CODE;
-//     else if (dynamic_cast<const ErrBadChannelKey*>(&e))     code = ERR_BADCHANNELKEY_CODE;
-//     else if (dynamic_cast<const ErrBadChanMask*>(&e))       code = ERR_BADCHANMASK_CODE;
-//     else if (dynamic_cast<const ErrNoChanModes*>(&e))       code = ERR_NOCHANMODES_CODE;
-//     else if (dynamic_cast<const ErrUserNotInChannel*>(&e))  code = ERR_USERNOTINCHANNEL_CODE;
-//     else if (dynamic_cast<const ErrNotOnChannel*>(&e))      code = ERR_NOTONCHANNEL_CODE;
-//     else if (dynamic_cast<const ErrUserOnChannel*>(&e))     code = ERR_USERONCHANNEL_CODE;
-//     else if (dynamic_cast<const ErrChanOpPrivsNeeded*>(&e)) code = ERR_CHANOPRIVSNEEDED_CODE;
-//     else if (dynamic_cast<const ErrUsersDontMatch*>(&e))    code = ERR_USERSDONTMATCH_CODE;
-//     else if (dynamic_cast<const ErrNeedMoreParams*>(&e))    code = ERR_NEEDMOREPARAMS_CODE;
-//     else if (dynamic_cast<const ErrInvalidModeParams*>(&e)) code = ERR_INVALIDMODEPARAMS_CODE;
-//     else if (dynamic_cast<const ErrUserNotFound*>(&e))      code = ERR_NOSUCHNICK_CODE;
-//     else                                                    code = "400";
-
-//     // --- 2. Construire la liste de paramètres automatiquement ---
-//     params.push_back(user.getNickname());
-
-//     // Si l’erreur concerne un channel
-//     if (!target.empty() && target[0] == '#')
-//         params.push_back(target);
-
-//     // Si l’erreur est liée à la commande (comme NeedMoreParams)
+//     if (dynamic_cast<const ErrNoSuchNick*>(&e))
+//         _send_response(user, command, ERR_NOSUCHNICK_CODE, e.what());
+//     else if (dynamic_cast<const ErrNoSuchChannel*>(&e))
+//         _send_response(user, command, ERR_NOSUCHCHANNEL_CODE, e.what());
+//     else if (dynamic_cast<const ErrTooManyChannels*>(&e))
+//         _send_response(user, command, ERR_TOOMANYCHANNELS_CODE, e.what());
+//     else if (dynamic_cast<const ErrUnknownMode*>(&e))
+//         _send_response(user, command, ERR_UNKNOWNMODE_CODE, e.what());
+//     else if (dynamic_cast<const ErrChannelIsFull*>(&e))
+//         _send_response(user, command, ERR_CHANNELISFULL_CODE, e.what());
+//     else if (dynamic_cast<const ErrInviteOnlyChan*>(&e))
+//         _send_response(user, command, ERR_INVITEONLYCHAN_CODE, e.what());
+//     else if (dynamic_cast<const ErrBannedFromChan*>(&e))
+//         _send_response(user, command, ERR_BANNEDFROMCHAN_CODE, e.what());
+//     else if (dynamic_cast<const ErrBadChannelKey*>(&e))
+//         _send_response(user, command, ERR_BADCHANNELKEY_CODE, e.what());
+//     else if (dynamic_cast<const ErrBadChanMask*>(&e))
+//         _send_response(user, command, ERR_BADCHANMASK_CODE, e.what());
+//     else if (dynamic_cast<const ErrNoChanModes*>(&e))
+//         _send_response(user, command, ERR_NOCHANMODES_CODE, e.what());
+//     else if (dynamic_cast<const ErrUserNotInChannel*>(&e))
+//         _send_response(user, command, ERR_USERNOTINCHANNEL_CODE, e.what());
+//     else if (dynamic_cast<const ErrNotOnChannel*>(&e))
+//         _send_response(user, command, ERR_NOTONCHANNEL_CODE, e.what());
+//     else if (dynamic_cast<const ErrUserOnChannel*>(&e))
+//         _send_response(user, command, ERR_USERONCHANNEL_CODE, e.what());
+//     else if (dynamic_cast<const ErrChanOpPrivsNeeded*>(&e))
+//         _send_response(user, command, ERR_CHANOPRIVSNEEDED_CODE, e.what());
+//     else if (dynamic_cast<const ErrUsersDontMatch*>(&e))
+//         _send_response(user, command, ERR_USERSDONTMATCH_CODE, e.what());
 //     else if (dynamic_cast<const ErrNeedMoreParams*>(&e))
-//         params.push_back(command);
-
-//     // Pour certaines erreurs, ajouter le mode ou autre info optionnelle
-//     else if (dynamic_cast<const ErrUnknownMode*>(&e) || dynamic_cast<const ErrInvalidModeParams*>(&e))
-//     {
-//         params.push_back(command);
-//         params.push_back(e.getMode());  // à condition que ta classe d’erreur stocke le mode
-//     }
-
-//     // --- 3. Envoi propre ---
-//     _send_response(user, code, params, e.what());
+//         _send_response(user, command, ERR_NEEDMOREPARAMS_CODE, e.what());
+//     else if (dynamic_cast<const ErrInvalidModeParams*>(&e))
+//         _send_response(user, command, ERR_INVALIDMODEPARAMS_CODE, e.what());
+//     else if (dynamic_cast<const ErrUserNotFound*>(&e))
+//         _send_response(user, command, ERR_NOSUCHNICK_CODE, e.what());
+//     else
+//         _send_response(user, command, "400", e.what());
 // }
+
+void Server::_send_error(User &user, const std::string &command, const ChannelException &e)
+{
+    std::string code;
+    std::vector<std::string> params;
+    std::string target = e.getTarget();
+
+    // --- 1. Associer le bon code à chaque exception ---
+    if      (dynamic_cast<const ErrNoSuchNick*>(&e))        code = ERR_NOSUCHNICK_CODE;
+    else if (dynamic_cast<const ErrNoSuchChannel*>(&e))     code = ERR_NOSUCHCHANNEL_CODE;
+    else if (dynamic_cast<const ErrTooManyChannels*>(&e))   code = ERR_TOOMANYCHANNELS_CODE;
+    else if (dynamic_cast<const ErrUnknownMode*>(&e))       code = ERR_UNKNOWNMODE_CODE;
+    else if (dynamic_cast<const ErrChannelIsFull*>(&e))     code = ERR_CHANNELISFULL_CODE;
+    else if (dynamic_cast<const ErrInviteOnlyChan*>(&e))    code = ERR_INVITEONLYCHAN_CODE;
+    else if (dynamic_cast<const ErrBannedFromChan*>(&e))    code = ERR_BANNEDFROMCHAN_CODE;
+    else if (dynamic_cast<const ErrBadChannelKey*>(&e))     code = ERR_BADCHANNELKEY_CODE;
+    else if (dynamic_cast<const ErrBadChanMask*>(&e))       code = ERR_BADCHANMASK_CODE;
+    else if (dynamic_cast<const ErrNoChanModes*>(&e))       code = ERR_NOCHANMODES_CODE;
+    else if (dynamic_cast<const ErrUserNotInChannel*>(&e))  code = ERR_USERNOTINCHANNEL_CODE;
+    else if (dynamic_cast<const ErrNotOnChannel*>(&e))      code = ERR_NOTONCHANNEL_CODE;
+    else if (dynamic_cast<const ErrUserOnChannel*>(&e))     code = ERR_USERONCHANNEL_CODE;
+    else if (dynamic_cast<const ErrChanOpPrivsNeeded*>(&e)) code = ERR_CHANOPRIVSNEEDED_CODE;
+    else if (dynamic_cast<const ErrUsersDontMatch*>(&e))    code = ERR_USERSDONTMATCH_CODE;
+    else if (dynamic_cast<const ErrNeedMoreParams*>(&e))    code = ERR_NEEDMOREPARAMS_CODE;
+    else if (dynamic_cast<const ErrInvalidModeParams*>(&e)) code = ERR_INVALIDMODEPARAMS_CODE;
+    else if (dynamic_cast<const ErrUserNotFound*>(&e))      code = ERR_NOSUCHNICK_CODE;
+    else                                                    code = "400";
+
+    // --- 2. Construire la liste de paramètres automatiquement ---
+    params.push_back(user._get_nickname());
+
+    // Si l’erreur concerne un channel
+    if (!target.empty() && target[0] == '#')
+        params.push_back(target);
+
+    // Si l’erreur est liée à la commande (comme NeedMoreParams)
+    else if (dynamic_cast<const ErrNeedMoreParams*>(&e))
+        params.push_back(command);
+
+    else if (dynamic_cast<const ErrUnknownMode*>(&e) || dynamic_cast<const ErrInvalidModeParams*>(&e))
+    {
+        params.push_back(command);
+    }
+
+    // --- 3. Envoi propre ---
+    _send_response(user, code, params, e.what());
+}
 
 bool    Server::_is_supported_command(std::string command, std::vector<std::string> params)
 {

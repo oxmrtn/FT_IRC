@@ -81,10 +81,10 @@ User  &User::operator=(const User &src)
 
 bool User::operator!=(const User &src)
 {
-    return (_username != src._username);
+    return (_nickname != src._nickname);
 }
 
 bool User::operator==(const User &src)
 {
-    return (_username == src._username);
+    return (_nickname == src._nickname);
 }
