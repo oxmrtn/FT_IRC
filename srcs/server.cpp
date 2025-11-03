@@ -547,11 +547,12 @@ void    Server::_process_polled(size_t user_i)
                 Message parsed(line);
                 _handle_message(user, parsed);
             }
+            if (_pfds[user_i].fd == -1)
+                return;
             msg.erase(0, pos + 1);
         }
-
-        if (_pfds[user_i].fd != -1)
-            user._set_msg(msg, false);
+        
+        user._set_msg(msg, false);
     }
     else if (r_bytes == 0)
         _disconnect_user(user);
