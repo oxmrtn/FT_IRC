@@ -215,7 +215,6 @@ void Server::_send_error(User &user, const std::string &command, const ChannelEx
     std::vector<std::string> params;
     std::string target = e.getTarget();
 
-    // --- 1. Associer le bon code à chaque exception ---
     if      (dynamic_cast<const ErrNoSuchNick*>(&e))        code = ERR_NOSUCHNICK_CODE;
     else if (dynamic_cast<const ErrNoSuchChannel*>(&e))     code = ERR_NOSUCHCHANNEL_CODE;
     else if (dynamic_cast<const ErrTooManyChannels*>(&e))   code = ERR_TOOMANYCHANNELS_CODE;
@@ -236,14 +235,10 @@ void Server::_send_error(User &user, const std::string &command, const ChannelEx
     else if (dynamic_cast<const ErrUserNotFound*>(&e))      code = ERR_NOSUCHNICK_CODE;
     else                                                    code = "400";
 
-    // --- 2. Construire la liste de paramètres automatiquement ---
     params.push_back(user._get_nickname());
 
-    // Si l’erreur concerne un channel
     if (!target.empty() && target[0] == '#')
         params.push_back(target);
-
-    // Si l’erreur est liée à la commande (comme NeedMoreParams)
     else if (dynamic_cast<const ErrNeedMoreParams*>(&e))
         params.push_back(command);
 
@@ -251,8 +246,6 @@ void Server::_send_error(User &user, const std::string &command, const ChannelEx
     {
         params.push_back(command);
     }
-
-    // --- 3. Envoi propre ---
     _send_response(user, code, params, e.what());
 }
 
@@ -376,10 +369,11 @@ void    Server::_handle_message(User &user, Message &parsed)
         try {
             std::cout << " COMMAND JOIN BLOCK" << std::endl;
             Channel &chan = getChanbyName(params[0], _channels);
-            std::cout << " passe ici" << std::endl;
             std::string key = "";
-            if (params.size() == 3)
-                key = params[2];
+            if (params.size() == 2)
+            {
+                key = params[1];
+            }
             if (chan.join(&user, key))
                 std::cout << user._get_username() << " successfully joined " << chan._getName() << std::endl;
             else
@@ -402,7 +396,7 @@ void    Server::_handle_message(User &user, Message &parsed)
         try{
             std::cout << " COMMAND KICK BLOCK" << std::endl;
             Channel &chan = getChanbyName(params[0], _channels);
-            User tokick = getUserByUname_ref(params[1], _users );
+            User & tokick = getUserByUname_ref(params[1], _users );
             if (chan.kick(&tokick, &user, parsed._get_trailing()))
             {
                 std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
@@ -419,8 +413,12 @@ void    Server::_handle_message(User &user, Message &parsed)
     {
         try{
             std::cout << " COMMAND INVITE BLOCK" << std::endl;
-            Channel chan = getChanbyName(params[0], _channels);
-            User & toinvite = getUserByUname_ref(parsed._get_trailing(), _users);
+            if (params.size() != 2)
+            {
+                throw ErrNeedMoreParams("KICK");
+            }
+            Channel & chan = getChanbyName(params[1], _channels);
+            User & toinvite = getUserByUname_ref(params[0], _users);
             if (chan.invite(&toinvite, &user))
             {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;

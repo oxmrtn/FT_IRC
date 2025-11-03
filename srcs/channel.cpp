@@ -114,8 +114,8 @@ bool Channel::kick(User* user, User *op, std::string reason)
     }
     if (deleted)
     {
-        std::string to_send = op->_get_prefix() + " KICK " + _name + user->_get_nickname() + ":" + reason; 
-        _send_message_to_channel(*op, to_send, false);
+        std::string to_send = op->_get_prefix() + " KICK " + _name + " " + user->_get_nickname() + " :" + reason; 
+        _send_message_to_channel(*op, to_send, true);
         _send_raw_string(*user, to_send);
     }
     return deleted;
@@ -133,7 +133,10 @@ bool Channel::join(User* user, const std::string& key)
         throw ErrInviteOnlyChan(_name);
 
     if (_pwdNeeded && _pwd != key)
+    {
+        std::cout << "PASS NEEDED = |" << _pwd << "| -- PASS GIVEN |" << key << std::endl;
         throw ErrBadChannelKey(_name);
+    }
 
     _uList.push_back(user);
 
