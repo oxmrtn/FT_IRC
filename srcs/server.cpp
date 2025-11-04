@@ -116,12 +116,13 @@ void    Server::_handle_connection(void)
 
 void Server::_disconnect_user(User &user)
 {
-    char    *ip = inet_ntoa(user._get_addr().sin_addr);
-    int     port = ntohs(user._get_addr().sin_port);
-    size_t  pfd_i = _get_i_from_user(user);
-    size_t  user_i = pfd_i - 2;
-    size_t  last_pfd_i = _users.size() + 1;
-    size_t  last_user_i = last_pfd_i - 2;
+    std::string nick = user._get_nickname();
+    char        *ip = inet_ntoa(user._get_addr().sin_addr);
+    int         port = ntohs(user._get_addr().sin_port);
+    size_t      pfd_i = _get_i_from_user(user);
+    size_t      user_i = pfd_i - 2;
+    size_t      last_pfd_i = _users.size() + 1;
+    size_t      last_user_i = last_pfd_i - 2;
     
     close(_pfds[pfd_i].fd);
 
@@ -137,7 +138,7 @@ void Server::_disconnect_user(User &user)
     _pfds[last_pfd_i].events = 0;
     _pfds[last_pfd_i].revents = 0;
 
-    std::cout << "User disconnected: " << ip << ":" << port << std::endl;
+    std::cout << nick << "(" << ip << ":" << port << ")" << " disconnected" << std::endl;
 }
 
 void    Server::_send_response(User &user, std::string command, std::string error_code, std::string trailing)
@@ -524,9 +525,9 @@ void    Server::_process_polled(size_t user_i)
         std::string msg = user._get_msg();
         size_t pos = 0;
 
-        while ((pos = msg.find('\n')) != std::string::npos) {
+        while ((pos = msg.find("\r\n")) != std::string::npos) {
             std::string line = msg.substr(0, pos);
-            if (!line.empty() && line[line.size() - 1] == '\r')
+            if (!line.empty() && line[line.size() - 1] == '\r') // update for /r/n, max length msg split, <nick> disconnected
                 line.erase(line.size() - 1);
             line = clean_spaces(line);
             if (!line.empty()) {
