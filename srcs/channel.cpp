@@ -77,9 +77,11 @@ bool Channel::kick(User* user, User *op, std::string reason)
 
     if (!UserInVector(*op, _uList))
         throw ErrNotOnChannel(_name);
-
     if (!UserInVector(*op, _oList))
+    {
         throw ErrChanOpPrivsNeeded(_name);
+        return false;
+    }
     if (!UserInVector(*user, _uList))
         throw ErrUserNotInChannel(user->_get_username(), _name);
     for (std::vector<User*>::iterator it = _uList.begin(); it != _uList.end(); )
@@ -324,6 +326,8 @@ bool Channel::mode(char mode, User & user, char sign, std::string parameters)
 
 void    Channel::_send_message_to_channel(User & sender, std::string to_send, bool global)
 {
+    if (!UserInVector(sender, _uList))
+        throw ErrNotOnChannel(_name);
     for (size_t i = 0; i < _uList.size(); i++)
     {
         if (global)

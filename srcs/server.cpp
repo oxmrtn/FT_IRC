@@ -401,6 +401,7 @@ void    Server::_handle_message(User &user, Message &parsed)
             {
                 std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
             }
+            return ;
         }
         catch(ChannelException &e)
         {
@@ -422,7 +423,8 @@ void    Server::_handle_message(User &user, Message &parsed)
             if (chan.invite(&toinvite, &user))
             {
                     std::cout << toinvite._get_username() << " was succcessfully invited to " << chan._getName() << std::endl;
-            } 
+            }
+            return ;
         }catch(ChannelException &e)
         {
             std::cout << " Exception catch in INVITE" << std::endl;
@@ -456,6 +458,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                     _send_raw_string(user, topic);
                     _send_raw_string(user, whotime);
                 }
+                return ;
             }
             else
             {
@@ -463,7 +466,6 @@ void    Server::_handle_message(User &user, Message &parsed)
                 {
                     std::cout << user._get_username() << "successfully changed topic" << std::endl;
                 }
-// operator check error not catched
             }
         }catch(ChannelException &e)
         {
@@ -484,6 +486,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                 throw ErrUnknownMode(std::string(mode, 1));
             Channel &chan = getChanbyName(params[0], _channels);
             chan.mode(mode, user, sign, args);
+            return ;
         }catch(ChannelException &e)
         {
             std::cout << " Exception catch in MODE" << std::endl;
@@ -501,6 +504,7 @@ void    Server::_handle_message(User &user, Message &parsed)
                 Channel &chan = getChanbyName(params[0], _channels);
                 std::string to_send = user._get_prefix() + " PRIVMSG " + chan._getName() + " :" + parsed._get_trailing();
                 chan._send_message_to_channel(user, to_send, false);
+                return ;
             }catch(ChannelException &e)
             {
                 std::cout << " Exception catch in PRIVMSG" << std::endl;
@@ -513,6 +517,7 @@ void    Server::_handle_message(User &user, Message &parsed)
             try{
                 User & receiver = getUserByUname_ref(params[0], _users);
                 _send_message_to_users(user, receiver, parsed._get_trailing());
+                return ;
             }catch (ChannelException &e)
             {
                 _send_error(user, command, e);
@@ -521,6 +526,7 @@ void    Server::_handle_message(User &user, Message &parsed)
          
         }
     }
+    return ;
 }
 
 void    Server::_process_polled(size_t user_i)
