@@ -153,7 +153,6 @@ void    Server::_send_response(User &user, std::string command, std::string erro
         response_params.push_back(command);
     Message reponse(SERVER_NAME, error_code, response_params, trailing);
     reponse._send(user);
-    std::cout << "response = " << reponse._compose() << std::endl;
 }
 
 void    Server::_send_response(User & user,  std::string error_code, std::vector<std::string> response_params, std::string trailing)
@@ -164,7 +163,6 @@ void    Server::_send_response(User & user,  std::string error_code, std::vector
         response_params.insert(response_params.begin(), "*");
     Message reponse(SERVER_NAME, error_code, response_params, trailing);
     reponse._send(user);
-    std::cout << "response = " << reponse._compose() << std::endl;
 }
 
 // void Server::_send_error(User &user, const std::string &command, const ChannelException &e)
@@ -349,9 +347,6 @@ void    Server::_handle_message(User &user, Message &parsed)
     std::string                 trailing = parsed._get_trailing();
     std::vector<std::string>    params = parsed._get_params();
 
-    std::cout << "command = " << command << std::endl;
-    for (size_t i = 0; i < params.size(); i++)
-        std::cout << "params " << i << " = " << params[i] << std::endl;
     if (!_is_supported_command(command, params))
         _send_response(user, command, ERR_UNKNOWNCOMMAND_CODE, ERR_UNKNOWNCOMMAND_MSG);
     else if (command == "PASS")
@@ -367,7 +362,6 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "JOIN")
     {
         try {
-            std::cout << " COMMAND JOIN BLOCK" << std::endl;
             Channel &chan = getChanbyName(params[0], _channels);
             std::string key = "";
             if (params.size() == 2)
@@ -380,32 +374,28 @@ void    Server::_handle_message(User &user, Message &parsed)
                 std::cout << user._get_username() << " didnt joined " << chan._getName() << std::endl;
         }catch (ErrNoSuchChannel &e)
         {
-            std::cout << " Exception catch in JOIN -- Creating a channel" << std::endl;
             Channel chan(params[0]);
             chan.addOpp(&user, true);
             _channels.push_back(chan);
         }
         catch(ChannelException &e)
         {
-            std::cout << " Exception catch in JOIN" << std::endl;
             _send_error(user, command, e);
         }
     }
     else if (command == "KICK")
     {
         try{
-            std::cout << " COMMAND KICK BLOCK" << std::endl;
             Channel &chan = getChanbyName(params[0], _channels);
             User & tokick = getUserByUname_ref(params[1], _users );
             if (chan.kick(&tokick, &user, parsed._get_trailing()))
             {
-                std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
+            std::cout << user._get_username() << "successfully kicked " << tokick._get_username() << "out of " << chan._getName() << std::endl;
             }
             return ;
         }
         catch(ChannelException &e)
         {
-            std::cout << " Exception catch in KICK" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -413,7 +403,6 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "INVITE")
     {
         try{
-            std::cout << " COMMAND INVITE BLOCK" << std::endl;
             if (params.size() != 2)
             {
                 throw ErrNeedMoreParams("KICK");
@@ -427,7 +416,6 @@ void    Server::_handle_message(User &user, Message &parsed)
             return ;
         }catch(ChannelException &e)
         {
-            std::cout << " Exception catch in INVITE" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -435,7 +423,6 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "TOPIC")
     {
         try{
-            std::cout << " COMMAND TOPIC BLOCK" << std::endl;
             Channel  &chan = getChanbyName(params[0], _channels);
             if (parsed._get_trailing().size() == 0)
             {
@@ -464,12 +451,11 @@ void    Server::_handle_message(User &user, Message &parsed)
             {
                 if (chan.setTopic(parsed._get_trailing(), user))
                 {
-                    std::cout << user._get_username() << "successfully changed topic" << std::endl;
+                    std::cout << user._get_username() << "successfully changed topic " << std::endl;
                 }
             }
         }catch(ChannelException &e)
         {
-            std::cout << " Exception catch in TOPIC" << std::endl;
             _send_error(user, command, e);
             return ;
         }
@@ -478,7 +464,6 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "MODE" && !params.empty() && params[0][0] == '#')
     {
         try {
-            std::cout << " COMMAND MODE BLOCK" << std::endl;
             char sign = (params.size() > 1 ? params[1][0] : '*');
             char mode = (params.size() > 1 ? params[1][1] : '*');
             std::string args = (params.size() > 2 ? params[2] : "");
@@ -489,14 +474,12 @@ void    Server::_handle_message(User &user, Message &parsed)
             return ;
         }catch(ChannelException &e)
         {
-            std::cout << " Exception catch in MODE" << std::endl;
             _send_error(user, command, e);
             return ;
         }
     }
     else if (command == "PRIVMSG")
     {
-        std::cout << "PRIVMSG BLOC" << std::endl;
         bool message_to_channel = (params[0][0] == '#' ? true : false);
         if (message_to_channel)
         {
@@ -507,7 +490,6 @@ void    Server::_handle_message(User &user, Message &parsed)
                 return ;
             }catch(ChannelException &e)
             {
-                std::cout << " Exception catch in PRIVMSG" << std::endl;
                 _send_error(user, command, e);
                 return ;
             }

@@ -136,7 +136,6 @@ bool Channel::join(User* user, const std::string& key)
 
     if (_pwdNeeded && _pwd != key)
     {
-        std::cout << "PASS NEEDED = |" << _pwd << "| -- PASS GIVEN |" << key << std::endl;
         throw ErrBadChannelKey(_name);
     }
 
@@ -332,7 +331,6 @@ void    Channel::_send_message_to_channel(User & sender, std::string to_send, bo
     {
         if (global)
         {
-            std::cout << to_send << std::endl;
             _send_raw_string(*_uList[i], to_send);
         }
         else if (_uList[i]->_get_nickname() != sender._get_nickname())
