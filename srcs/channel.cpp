@@ -335,7 +335,6 @@ void    Channel::_send_message_to_channel(User & sender, std::string to_send, bo
         }
         else if (_uList[i]->_get_nickname() != sender._get_nickname())
         {
-            std::cout << to_send << std::endl;
             _send_raw_string(*_uList[i], to_send);
         }
     }
