@@ -33,7 +33,7 @@ void Server::_init(int port, std::string pass)
     if (bind(_pfds[1].fd, reinterpret_cast<struct sockaddr*>(&tmp_addr), sizeof(tmp_addr)) < 0)
         throw SocketBindError();
         
-    if (listen(_pfds[1].fd, CON_QUEUE) < 0)
+    if (listen(_pfds[1].fd, MSG_QUEUE) < 0)
         throw SocketListenError();
 
     socklen_t   len = sizeof(_addr);
