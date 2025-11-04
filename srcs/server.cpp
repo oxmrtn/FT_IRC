@@ -33,7 +33,7 @@ void Server::_init(int port, std::string pass)
     if (bind(_pfds[1].fd, reinterpret_cast<struct sockaddr*>(&tmp_addr), sizeof(tmp_addr)) < 0)
         throw SocketBindError();
         
-    if (listen(_pfds[1].fd, MSG_QUEUE) < 0)
+    if (listen(_pfds[1].fd, CON_QUEUE) < 0)
         throw SocketListenError();
 
     socklen_t   len = sizeof(_addr);
@@ -117,6 +117,8 @@ void    Server::_handle_connection(void)
 void Server::_disconnect_user(User &user)
 {
     std::string nick = user._get_nickname();
+    if (nick.empty())
+        nick = "Unauthenticated user";
     char        *ip = inet_ntoa(user._get_addr().sin_addr);
     int         port = ntohs(user._get_addr().sin_port);
     size_t      pfd_i = _get_i_from_user(user);
@@ -138,7 +140,7 @@ void Server::_disconnect_user(User &user)
     _pfds[last_pfd_i].events = 0;
     _pfds[last_pfd_i].revents = 0;
 
-    std::cout << nick << "(" << ip << ":" << port << ")" << " disconnected" << std::endl;
+    std::cout << nick << " (" << ip << ":" << port << ")" << " disconnected" << std::endl;
 }
 
 void    Server::_send_response(User &user, std::string command, std::string error_code, std::string trailing)
@@ -527,8 +529,6 @@ void    Server::_process_polled(size_t user_i)
 
         while ((pos = msg.find("\r\n")) != std::string::npos) {
             std::string line = msg.substr(0, pos);
-            if (!line.empty() && line[line.size() - 1] == '\r') // update for /r/n, max length msg split, <nick> disconnected
-                line.erase(line.size() - 1);
             line = clean_spaces(line);
             if (!line.empty()) {
                 Message parsed(line);
@@ -536,7 +536,7 @@ void    Server::_process_polled(size_t user_i)
             }
             if (_pfds[user_i].fd == -1)
                 return;
-            msg.erase(0, pos + 1);
+            msg.erase(0, pos + 2);
         }
         
         user._set_msg(msg, false);

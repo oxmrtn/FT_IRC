@@ -2,7 +2,7 @@
 
 #define SERVER_NAME                 "irc.localhost"
 
-#define MSG_QUEUE                   50
+#define CON_QUEUE                   10
 #define CON_USER_LIMIT              100
 #define MSG_BUF_SIZ                 512
 #define MIN_NAME_LEN                3
