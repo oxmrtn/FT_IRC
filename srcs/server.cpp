@@ -47,7 +47,7 @@ bool    Server::_handle_sigquit(void)
 {
     char    buf[MSG_BUF_SIZ];
 
-    ssize_t r_bytes = read(_pfds[0].fd, buf, MSG_BUF_SIZ - 1);
+    size_t r_bytes = read(_pfds[0].fd, buf, MSG_BUF_SIZ - 1);
 
     if (r_bytes == 0)
     {
@@ -119,6 +119,8 @@ void Server::_disconnect_user(User &user)
     std::string nick = user._get_nickname();
     if (nick.empty())
         nick = "Unauthenticated user";
+    else
+        nick = "User \"" + nick + "\"";
     char        *ip = inet_ntoa(user._get_addr().sin_addr);
     int         port = ntohs(user._get_addr().sin_port);
     size_t      pfd_i = _get_i_from_user(user);
@@ -254,7 +256,7 @@ bool    Server::_is_supported_command(std::string command, std::vector<std::stri
 {
     bool        valid_cmd = false;
     const char  *supported_cmds_arr[] = {
-        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PRIVMSG", "CAP", "PING"
+        "PASS", "NICK", "USER", "JOIN", "KICK", "INVITE", "TOPIC", "MODE", "PRIVMSG", "CAP", "PING", "QUIT"
     };
 
     for (size_t i = 0; i < sizeof(supported_cmds_arr) / sizeof(char *); i++)
@@ -352,6 +354,8 @@ void    Server::_handle_message(User &user, Message &parsed)
 
     if (!_is_supported_command(command, params))
         _send_response(user, command, ERR_UNKNOWNCOMMAND_CODE, ERR_UNKNOWNCOMMAND_MSG);
+    else if (command == "QUIT")
+        _disconnect_user(user);
     else if (command == "PASS")
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
@@ -511,7 +515,6 @@ void    Server::_handle_message(User &user, Message &parsed)
          
         }
     }
-    return ;
 }
 
 void    Server::_process_polled(size_t user_i)
@@ -519,7 +522,7 @@ void    Server::_process_polled(size_t user_i)
     User    &user = _get_user_from_i(user_i);
     char    buf[MSG_BUF_SIZ];
 
-    ssize_t r_bytes = recv(_pfds[user_i].fd, buf, MSG_BUF_SIZ - 1, 0);
+    size_t r_bytes = recv(_pfds[user_i].fd, buf, MSG_BUF_SIZ - 1, 0);
     
     if (r_bytes > 0) {
         buf[r_bytes] = '\0';
