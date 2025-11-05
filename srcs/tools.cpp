@@ -71,8 +71,33 @@ void    _send_message_to_users(const User & sender, const User & receiver, std::
 
 void _send_raw_string(const User &receiver, std::string msg)
 {   
-    int fd = receiver._get_pfd()->fd;
-    if (msg.size() < 2 || msg.substr(msg.size() - 2) != "\r\n")
-        msg += "\r\n";
-    send(fd, msg.c_str(), msg.size(), 0);
+    int         fd = receiver._get_pfd()->fd;
+    size_t      msg_len = msg.length();
+    size_t      start = 0;
+    size_t      end = 0;
+    std::string pre = "";
+    if (!msg.empty() && msg[0] == ':')
+    {
+        size_t  pos = msg.find(' ');
+        pre = msg.substr(0, pos + 1);
+    }
+    size_t      pre_len = pre.length();
+
+    while (end != std::string::npos)
+    {
+        std::string to_send;
+        size_t      pre_reserved = start != 0 ? pre_len : 0;
+
+        if (msg_len - (start + pre_reserved) > 512)
+            end = 510 - pre_reserved;
+        else
+            end = std::string::npos;
+        to_send = msg.substr(start, end);
+        if (pre_reserved != 0)
+            to_send = pre + to_send;
+        if (!ends_with(to_send, "\r\n"))
+            to_send += "\r\n";
+        send(fd, to_send.c_str(), to_send.length(), 0);
+        start += 510 - pre_reserved;
+    }
 }

@@ -32,7 +32,6 @@ int         is_zero(const std::string str);
 std::string to_lowercase(const std::string &str);
 bool        ends_with(const std::string &str, const std::string &suffix);
 std::string trim_spaces(const std::string &str);
-std::string normalize_spaces(const std::string &str);
 std::string deduplicate_spaces(const std::string &str);
 std::string clean_spaces(const std::string &str);
 std::pair<std::string, std::string>
