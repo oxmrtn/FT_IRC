@@ -76,3 +76,47 @@ void _send_raw_string(const User &receiver, std::string msg)
         msg += "\r\n";
     send(fd, msg.c_str(), msg.size(), 0);
 }
+
+static unsigned char tolower_func(unsigned char c)
+{
+    return static_cast<unsigned char>(std::tolower(c));
+}
+
+std::string str_tolower(std::string s)
+{
+    std::transform(s.begin(), s.end(), s.begin(), tolower_func);
+    return s;
+}
+
+void handle_bot(Channel & chan, std::string trailing, User & user)
+{
+    bool bot = false;
+    std::string to_send = ":bot!bot@irc.localhost PRIVMSG " + chan._getName() + " :";
+    if (trailing.find("!hello") != std::string::npos)
+    {
+        bot = true;
+        to_send += " Hello " + user._get_nickname() + " ! How are you ?";
+    }
+    else if (trailing.find("!count") != std::string::npos)
+    {
+        bot = true;
+        std::ostringstream oss;
+        oss << chan._getCount();
+        to_send += " There is actually " + oss.str() + " people connected on this channel !";
+    }
+    else if (trailing.find("!time") != std::string::npos)
+    {
+        bot = true;
+        std::time_t now = std::time(NULL);
+        std::tm *ltm = std::localtime(&now);
+
+        char buffer[64];
+        std::strftime(buffer, sizeof(buffer), "%H:%M:%S", ltm);
+
+        to_send +=  "It is exactly ";
+        to_send += buffer ;
+        to_send += " right now !";
+    }
+    if (bot) { chan._send_message_to_channel(user, to_send, true);}
+    return ;
+}

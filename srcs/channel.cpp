@@ -359,3 +359,8 @@ bool Channel::_is_user_in_chan(const User &user)
 {
     return (UserInVector(user, _uList));
 }
+
+int Channel::_getCount()
+{
+    return (static_cast<int>(_uList.size()));
+}
