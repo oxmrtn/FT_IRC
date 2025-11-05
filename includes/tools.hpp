@@ -14,3 +14,5 @@ Channel & getChanbyName(const std::string & channame, std::vector<Channel> & lis
 void        remUserInVector(const User &user, std::vector<User*> &users);
 void        _send_message_to_users(const User & sender, const User & receiver, std::string content);
 void        _send_raw_string(const User &receiver, std::string msg);
+std::string str_tolower(std::string s);
+void handle_bot(Channel & chan, std::string trailing, User & user);
