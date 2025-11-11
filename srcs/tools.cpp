@@ -100,10 +100,6 @@ void _send_raw_string(const User &receiver, std::string msg)
         send(fd, to_send.c_str(), to_send.length(), 0);
         start += 510 - pre_reserved;
     }
-    int fd = receiver._get_pfd()->fd;
-    if (msg.size() < 2 || msg.substr(msg.size() - 2) != "\r\n")
-        msg += "\r\n";
-    send(fd, msg.c_str(), msg.size(), 0);
 }
 
 static unsigned char tolower_func(unsigned char c)
