@@ -127,7 +127,6 @@ bool Channel::join(User* user, const std::string& key)
 {
     if (UserInVector(*user, _uList))
         return false;
-
     if (_uLimit > 0 && (_uList.size()) + 1 >= static_cast<size_t>(_uLimit))
         throw ErrChannelIsFull(_name);
 

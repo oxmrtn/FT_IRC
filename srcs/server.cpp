@@ -387,9 +387,10 @@ void    Server::_handle_message(User &user, Message &parsed)
     }
     else if (command == "TOPIC")
     {
-        std::string chan_name = str_tolower(params[0]);
         try{
-            Channel  &chan = getChanbyName(chan_name, _channels);
+            if (params.empty())
+                throw ErrNeedMoreParams("Topic");
+            Channel  &chan = getChanbyName(str_tolower(params[0]), _channels);
             if (parsed._get_trailing().size() == 0)
             {
                 if (!chan._is_user_in_chan(user))
