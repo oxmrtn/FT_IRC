@@ -79,12 +79,12 @@ User  &User::operator=(const User &src)
     return *this;
 }
 
-bool User::operator!=(const User &src)
+bool User::operator!=(const User &src) const 
 {
     return (_nickname != src._nickname);
 }
 
-bool User::operator==(const User &src)
+bool User::operator==(const User &src) const
 {
     return (_nickname == src._nickname);
 }

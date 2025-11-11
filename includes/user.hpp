@@ -21,8 +21,8 @@ class   User
         User(void);
         User(const User &src);
         User &operator=(const User &src);
-        bool operator!=(const User &src);
-        bool operator==(const User &src);
+        bool operator!=(const User &src) const;
+        bool operator==(const User &src) const;
         ~User();
         // GETTERS
         sockaddr_in &_get_addr(void);
