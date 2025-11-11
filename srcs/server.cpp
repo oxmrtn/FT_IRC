@@ -633,8 +633,9 @@ Server::Server(const Server &src)
 
 Server::~Server()
 {
-    for (size_t i = 1; i < _users.size() + 1; i++)
-        close(_pfds[i].fd);    
+    close(_pfds[1].fd);
+    for (size_t i = 2; i < _users.size() + 2; i++)
+        close(_pfds[i].fd);
 }
 
 
