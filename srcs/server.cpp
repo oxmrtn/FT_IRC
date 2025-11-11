@@ -241,35 +241,30 @@ void    Server::_handle_pass(User &user, Auth auth, std::string command, std::ve
         user._set_auth(PASS);
 }
 
-void Server::_handle_names(User &user, Auth auth, std::string command, std::vector<std::string> params)
+void Server::_handle_names(User &user, Auth auth, std::string command, std::vector<std::string> params, std::string trailing)
 {
-    bool        no_params = params.empty();
     std::string name;
-    std::string hostname = "";
 
-    if (!no_params)
+    if (!params.empty())
         name = params[0];
 
     if (auth == NOT)
         _send_response(user, "", ERR_NOTREGISTERED_CODE, ERR_NOTREGISTERED_MSG);
     else if (command == "USER")
     {
-        if (params.size() > 1)
-            hostname = params[1];
         if (!user._get_username().empty())
             _send_response(user, "", ERR_ALREADYREGISTERED_CODE, ERR_ALREADYREGISTERED_MSG);
-        else if (no_params)
+        else if (params.size() < 3 || trailing.empty())
             _send_response(user, "", ERR_NEEDMOREPARAMS_CODE, ERR_NEEDMOREPARAMS_MSG);
         else if (!_is_name_valid(user, name, false))
             return;
+        std::string hostname = params[1];
         user._set_username(name);
         user._set_hostname(hostname);
     }
     else if (command == "NICK")
     {
-        if (no_params)
-            _send_response(user, "", ERR_NONICKNAMEGIVEN_CODE, ERR_NONICKNAMEGIVEN_MSG);
-        else if (!_is_name_valid(user, name, true))
+        if (!_is_name_valid(user, name, true))
             return;
         else if (!user._get_nickname().empty() && user._get_nickname() == name)
             return;
@@ -319,7 +314,7 @@ void    Server::_handle_message(User &user, Message &parsed)
     else if (command == "PASS")
         _handle_pass(user, auth, command, params);
     else if (command == "USER" || command == "NICK")
-        _handle_names(user, auth, command, params);
+        _handle_names(user, auth, command, params, trailing);
     else if (command == "PING")
         _handle_ping(user, trailing);
     else if (command == "CAP")
