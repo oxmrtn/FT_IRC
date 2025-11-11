@@ -434,13 +434,20 @@ void    Server::_handle_message(User &user, Message &parsed)
     {
         std::string chan_name = str_tolower(params[0]);
         try {
-            char sign = (params.size() > 1 ? params[1][0] : '*');
-            char mode = (params.size() > 1 ? params[1][1] : '*');
-            std::string args = (params.size() > 2 ? params[2] : "");
-            if (params[1].size() > 2 || (sign != '+' && sign != '-') || (std::string("iotkl").find(mode)) == std::string::npos)
-                throw ErrUnknownMode(std::string(mode, 1));
             Channel &chan = getChanbyName(chan_name, _channels);
-            chan.mode(mode, user, sign, args);
+            size_t nbr_command = (params[1].size() > 1 ? params[1].size() - 1 : 1);
+            size_t arg_command = 2;
+            for (size_t i = 0; i < nbr_command; i++)
+            {
+                char sign = (params.size() > 1 ? params[1][0] : '*');
+                char mode = (params.size() > 1 ? params[1][i + 1] : '*');
+                std::string args = (params.size() > arg_command ? params[arg_command] : "");
+                if ((sign != '+' && sign != '-') || (std::string("iotkl").find(mode)) == std::string::npos)
+                    throw ErrUnknownMode(std::string(mode, 1));
+                if (std::string("o").find(mode) != std::string::npos || (std::string("lk").find(mode) != std::string::npos && sign == '+'))
+                    arg_command++;
+                chan.mode(mode, user, sign, args);
+            }
             return ;
         }catch(ChannelException &e)
         {
