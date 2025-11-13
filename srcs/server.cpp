@@ -47,7 +47,7 @@ bool    Server::_handle_sigquit(void)
 {
     char    buf[MSG_BUF_SIZ];
 
-    size_t r_bytes = read(_pfds[0].fd, buf, MSG_BUF_SIZ - 1);
+    ssize_t r_bytes = read(_pfds[0].fd, buf, MSG_BUF_SIZ - 1);
 
     if (r_bytes == 0)
     {
